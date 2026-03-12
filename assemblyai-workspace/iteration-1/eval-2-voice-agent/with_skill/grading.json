@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "run_id": "eval-2-with_skill",
+  "expectations": [
+    {"text": "Uses u3-rt-pro model (not older streaming models)", "passed": true, "evidence": "Line 76: model='u3-rt-pro'"},
+    {"text": "Sets max_turn_silence explicitly (not relying on LiveKit default of 100ms)", "passed": true, "evidence": "Line 78: max_turn_silence=1000"},
+    {"text": "Sets min_endpointing_delay=0 to avoid additive 500ms", "passed": true, "evidence": "Line 96: min_endpointing_delay=0"},
+    {"text": "Synchronizes VAD thresholds (both ~0.3)", "passed": true, "evidence": "Line 79: vad_threshold=0.3, Line 89: activation_threshold=0.3"},
+    {"text": "Includes keyterms_prompt with dental vocabulary", "passed": true, "evidence": "Line 80: keyterms_prompt=DENTAL_KEYTERMS with ~45 dental terms"},
+    {"text": "Uses turn_detection='stt' mode", "passed": true, "evidence": "Line 93: turn_detection='stt'"},
+    {"text": "Does not use deprecated word_boost parameter", "passed": true, "evidence": "Uses keyterms_prompt, not word_boost"}
+  ]
+}

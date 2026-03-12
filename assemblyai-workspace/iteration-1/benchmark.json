@@ -1,0 +1,77 @@
+{
+  "skill_name": "assemblyai",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "label": "With AssemblyAI Skill"
+    },
+    {
+      "name": "without_skill",
+      "label": "Baseline (No Skill)"
+    }
+  ],
+  "evals": [
+    {
+      "eval_id": 1,
+      "eval_name": "basic-transcription-summary",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "passed": 4,
+          "total": 4
+        },
+        "without_skill": {
+          "pass_rate": 1.0,
+          "passed": 4,
+          "total": 4
+        }
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "livekit-dental-voice-agent",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "passed": 7,
+          "total": 7
+        },
+        "without_skill": {
+          "pass_rate": 0.0,
+          "passed": 0,
+          "total": 7
+        }
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "llm-gateway-pii-typescript",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "passed": 6,
+          "total": 6
+        },
+        "without_skill": {
+          "pass_rate": 0.5,
+          "passed": 3,
+          "total": 6
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "overall_pass_rate": 1.0,
+      "total_passed": 17,
+      "total_assertions": 17
+    },
+    "without_skill": {
+      "overall_pass_rate": 0.41,
+      "total_passed": 7,
+      "total_assertions": 17
+    }
+  },
+  "analysis": "The skill provides the most value on tasks involving newer APIs and framework-specific gotchas. Eval 1 (basic transcription) shows no difference — Claude's training data handles simple SDK usage fine. Eval 2 (voice agent) is where the skill shines: 7/7 vs 0/7 — without the skill, Claude uses deprecated word_boost, doesn't know about u3-rt-pro, misses all LiveKit-specific pitfalls (max_turn_silence default, min_endpointing_delay, VAD sync). Eval 3 (LLM Gateway) shows 6/6 vs 3/6 — without the skill, Claude falls back to deprecated LeMUR API with wrong model ID format."
+}

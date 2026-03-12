@@ -1,0 +1,560 @@
+# AssemblyAI LLM Gateway Reference
+
+## Overview
+
+The LLM Gateway is an OpenAI-compatible API provided by AssemblyAI for applying LLMs to transcripts and for general chat completions. It replaces LeMUR, which is deprecated and scheduled for sunset on March 31, 2026.
+
+**Key difference from LeMUR:** Instead of passing `transcript_ids`, you pass transcript text directly in the `messages` array. This gives you full control over what context the LLM receives.
+
+**Base URLs:**
+- Global: `https://llm-gateway.assemblyai.com/v1`
+- EU: `https://llm-gateway.eu.assemblyai.com/v1`
+
+**Authentication:**
+- Header: `Authorization: API_KEY`
+- Note: Do NOT use a `Bearer` prefix. Pass the API key directly.
+
+---
+
+## Available Models
+
+Model IDs have NO provider prefix (e.g., use `claude-sonnet-4-5-20250929`, not `anthropic/claude-sonnet-4-5-20250929`).
+
+### Anthropic (Claude)
+
+| Model | ID |
+|-------|----|
+| Claude Opus 4.6 | `claude-opus-4-6` |
+| Claude Sonnet 4.6 | `claude-sonnet-4-6` |
+| Claude 4.5 Sonnet | `claude-sonnet-4-5-20250929` |
+| Claude 4 Sonnet | `claude-sonnet-4-20250514` |
+| Claude 4 Opus | `claude-opus-4-20250514` |
+| Claude 4.5 Haiku | `claude-haiku-4-5-20251001` |
+| Claude 3.0 Haiku | `claude-3-haiku-20240307` |
+
+### OpenAI (GPT)
+
+| Model | ID |
+|-------|----|
+| GPT-5.2 | `gpt-5.2` |
+| GPT-5.1 | `gpt-5.1` |
+| GPT-5 | `gpt-5` |
+| GPT-5 nano | `gpt-5-nano` |
+| GPT-5 mini | `gpt-5-mini` |
+| GPT-4.1 | `gpt-4.1` |
+| gpt-oss-120b | `gpt-oss-120b` |
+| gpt-oss-20b | `gpt-oss-20b` |
+
+### Google (Gemini)
+
+| Model | ID |
+|-------|----|
+| Gemini 3 Pro Preview | `gemini-3-pro-preview` |
+| Gemini 3 Flash Preview | `gemini-3-flash-preview` |
+| Gemini 2.5 Pro | `gemini-2.5-pro` |
+| Gemini 2.5 Flash | `gemini-2.5-flash` |
+| Gemini 2.5 Flash-Lite | `gemini-2.5-flash-lite` |
+
+---
+
+## Chat Completions
+
+**Endpoint:** `POST /v1/chat/completions`
+
+The request and response formats follow the OpenAI Chat Completions specification. Access the LLM response via `result.choices[0].message.content`.
+
+Supports:
+- Multi-turn conversations (pass full message history)
+- System prompts (`role: "system"`)
+- User and assistant messages
+
+### cURL Example
+
+```bash
+curl https://llm-gateway.assemblyai.com/v1/chat/completions \
+  -H "Authorization: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-5-20250929",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant that analyzes transcripts."
+      },
+      {
+        "role": "user",
+        "content": "Summarize this transcript:\n\n<transcript>\nSpeaker A: Welcome to the meeting...\n</transcript>"
+      }
+    ]
+  }'
+```
+
+### Python (requests) Example
+
+```python
+import requests
+
+url = "https://llm-gateway.assemblyai.com/v1/chat/completions"
+headers = {
+    "Authorization": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+}
+data = {
+    "model": "claude-sonnet-4-5-20250929",
+    "messages": [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Summarize this transcript:\n\n" + transcript_text},
+    ],
+}
+
+response = requests.post(url, headers=headers, json=data)
+result = response.json()
+print(result["choices"][0]["message"]["content"])
+```
+
+### JavaScript (fetch) Example
+
+```javascript
+const response = await fetch(
+  "https://llm-gateway.assemblyai.com/v1/chat/completions",
+  {
+    method: "POST",
+    headers: {
+      Authorization: "YOUR_API_KEY",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-5-20250929",
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: `Summarize this transcript:\n\n${transcriptText}` },
+      ],
+    }),
+  }
+);
+
+const result = await response.json();
+console.log(result.choices[0].message.content);
+```
+
+### Response Format
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1711000000,
+  "model": "claude-sonnet-4-5-20250929",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is a summary of the transcript..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 150,
+    "completion_tokens": 200,
+    "total_tokens": 350
+  }
+}
+```
+
+---
+
+## Tool / Function Calling
+
+The LLM Gateway supports tool (function) calling. Define tools in the `tools` array and control tool selection with `tool_choice`.
+
+### Defining Tools
+
+```json
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "messages": [
+    {"role": "user", "content": "What is the weather in San Francisco?"}
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a location.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "The city and state, e.g. San Francisco, CA"
+            }
+          },
+          "required": ["location"]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}
+```
+
+### `tool_choice` Options
+
+- `"auto"` — The model decides whether to call a tool (default).
+- `"none"` — The model will not call any tools.
+- `{"type": "function", "function": {"name": "get_weather"}}` — Force a specific tool.
+
+### Tool Call Response
+
+When the model decides to call a tool, the response includes `finish_reason: "tool_calls"`:
+
+```json
+{
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_abc123",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"San Francisco, CA\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ]
+}
+```
+
+### Returning Tool Results
+
+After executing the tool, pass the result back using the `function_call_output` role:
+
+```json
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "messages": [
+    {"role": "user", "content": "What is the weather in San Francisco?"},
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_abc123",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\": \"San Francisco, CA\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "function_call_output",
+      "tool_call_id": "call_abc123",
+      "content": "{\"temperature\": 62, \"unit\": \"fahrenheit\", \"condition\": \"foggy\"}"
+    }
+  ]
+}
+```
+
+Message roles used in tool calling:
+- `function_call` — Used when the assistant invokes a tool.
+- `function_call_output` — Used to return the result of a tool execution back to the model.
+
+---
+
+## Agentic Workflows
+
+For multi-step agentic workflows, use a loop pattern where the model autonomously chains tool calls until it reaches a final answer (`finish_reason: "stop"`).
+
+### Loop Pattern with `max_iterations`
+
+```python
+import requests
+
+url = "https://llm-gateway.assemblyai.com/v1/chat/completions"
+headers = {
+    "Authorization": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+}
+
+messages = [
+    {"role": "system", "content": "You are a research assistant with access to tools."},
+    {"role": "user", "content": "Find the weather in NYC and SF, then compare them."},
+]
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a location.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string"}
+                },
+                "required": ["location"],
+            },
+        },
+    }
+]
+
+max_iterations = 10
+
+for i in range(max_iterations):
+    response = requests.post(
+        url,
+        headers=headers,
+        json={"model": "claude-sonnet-4-5-20250929", "messages": messages, "tools": tools},
+    )
+    result = response.json()
+    choice = result["choices"][0]
+    assistant_message = choice["message"]
+    messages.append(assistant_message)
+
+    if choice["finish_reason"] == "stop":
+        # Model has finished — print final answer
+        print(assistant_message["content"])
+        break
+
+    if choice["finish_reason"] == "tool_calls":
+        for tool_call in assistant_message["tool_calls"]:
+            # Execute the tool (your implementation)
+            tool_result = execute_tool(tool_call["function"]["name"], tool_call["function"]["arguments"])
+            messages.append({
+                "role": "function_call_output",
+                "tool_call_id": tool_call["id"],
+                "content": tool_result,
+            })
+```
+
+The model will call `get_weather` for each city in separate iterations, then produce a final comparison once it has all the data.
+
+---
+
+## Structured Outputs
+
+Use the `response_format` parameter with `type: "json_schema"` to get structured JSON responses that conform to a specific schema.
+
+**IMPORTANT:** Structured outputs with `json_schema` are only supported by OpenAI and Gemini models. Claude models do NOT support this feature. For Claude, instruct the model to return JSON via the system prompt instead.
+
+### Example
+
+```json
+{
+  "model": "gpt-5-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Extract action items from the following transcript."
+    },
+    {
+      "role": "user",
+      "content": "Transcript text here..."
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "action_items",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "action_items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "assignee": { "type": "string" },
+                "task": { "type": "string" },
+                "due_date": { "type": "string" }
+              },
+              "required": ["assignee", "task", "due_date"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["action_items"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
+```
+
+### Python Example
+
+```python
+import requests
+import json
+
+url = "https://llm-gateway.assemblyai.com/v1/chat/completions"
+headers = {
+    "Authorization": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+}
+
+data = {
+    "model": "gpt-5-mini",
+    "messages": [
+        {"role": "system", "content": "Extract action items from the transcript."},
+        {"role": "user", "content": transcript_text},
+    ],
+    "response_format": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "action_items",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "action_items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "assignee": {"type": "string"},
+                                "task": {"type": "string"},
+                                "due_date": {"type": "string"},
+                            },
+                            "required": ["assignee", "task", "due_date"],
+                            "additionalProperties": False,
+                        },
+                    }
+                },
+                "required": ["action_items"],
+                "additionalProperties": False,
+            },
+        },
+    },
+}
+
+response = requests.post(url, headers=headers, json=data)
+result = response.json()
+action_items = json.loads(result["choices"][0]["message"]["content"])
+print(action_items)
+```
+
+---
+
+## Data Retention by Provider
+
+Data retention policies vary by the underlying provider used by AssemblyAI:
+
+| Provider | Backend | Data Retention Policy |
+|----------|---------|----------------------|
+| Claude (Anthropic) | Amazon Bedrock | No data storage. Inputs and outputs are not stored or used for training. |
+| Gemini (Google) | Google AI | Zero Data Retention (ZDR). No data is stored or used for training. |
+| GPT (OpenAI) | OpenAI API | Retains abuse monitoring logs for 30 days. Data is not used for training. |
+
+---
+
+## Common Pattern: Transcribe Then Analyze
+
+The most common workflow is to transcribe audio with AssemblyAI's Speech-to-Text API, then send the transcript text to the LLM Gateway for analysis.
+
+### Full Workflow Example (Python)
+
+```python
+import requests
+
+API_KEY = "YOUR_API_KEY"
+
+# Step 1: Transcribe audio
+transcript_response = requests.post(
+    "https://api.assemblyai.com/v2/transcript",
+    headers={"Authorization": API_KEY, "Content-Type": "application/json"},
+    json={"audio_url": "https://example.com/audio.mp3"},
+)
+transcript_id = transcript_response.json()["id"]
+
+# Step 2: Poll for completion
+import time
+
+while True:
+    polling_response = requests.get(
+        f"https://api.assemblyai.com/v2/transcript/{transcript_id}",
+        headers={"Authorization": API_KEY},
+    )
+    status = polling_response.json()["status"]
+    if status == "completed":
+        transcript_text = polling_response.json()["text"]
+        break
+    elif status == "error":
+        raise Exception("Transcription failed: " + polling_response.json().get("error", ""))
+    time.sleep(3)
+
+# Step 3: Send transcript to LLM Gateway for analysis
+llm_response = requests.post(
+    "https://llm-gateway.assemblyai.com/v1/chat/completions",
+    headers={"Authorization": API_KEY, "Content-Type": "application/json"},
+    json={
+        "model": "claude-sonnet-4-5-20250929",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an expert at analyzing meeting transcripts.",
+            },
+            {
+                "role": "user",
+                "content": f"Analyze this transcript and provide:\n1. A brief summary\n2. Key decisions made\n3. Action items with assignees\n\nTranscript:\n{transcript_text}",
+            },
+        ],
+    },
+)
+
+analysis = llm_response.json()["choices"][0]["message"]["content"]
+print(analysis)
+```
+
+### Using the AssemblyAI Python SDK
+
+```python
+import assemblyai as aai
+
+aai.settings.api_key = "YOUR_API_KEY"
+
+# Step 1: Transcribe
+transcriber = aai.Transcriber()
+transcript = transcriber.transcribe("https://example.com/audio.mp3")
+
+if transcript.status == aai.TranscriptStatus.error:
+    raise Exception(f"Transcription failed: {transcript.error}")
+
+# Step 2: Send to LLM Gateway
+import requests
+
+llm_response = requests.post(
+    "https://llm-gateway.assemblyai.com/v1/chat/completions",
+    headers={"Authorization": aai.settings.api_key, "Content-Type": "application/json"},
+    json={
+        "model": "claude-sonnet-4-5-20250929",
+        "messages": [
+            {"role": "system", "content": "Summarize the following transcript."},
+            {"role": "user", "content": transcript.text},
+        ],
+    },
+)
+
+summary = llm_response.json()["choices"][0]["message"]["content"]
+print(summary)
+```
+
+### Key Points for the Transcribe-Then-Analyze Pattern
+
+- Use the same API key for both the Transcription API and the LLM Gateway.
+- Pass `transcript.text` (the full text) in the user message. Do NOT pass transcript IDs to the LLM Gateway (that was the LeMUR pattern).
+- For speaker-labeled analysis, format utterances from `transcript.utterances` before sending to the LLM.
+- You can include other transcript features (sentiment analysis results, entity detection, etc.) in the prompt for richer analysis.

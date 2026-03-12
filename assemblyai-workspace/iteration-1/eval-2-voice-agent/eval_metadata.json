@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "eval_name": "livekit-dental-voice-agent",
+  "prompt": "I'm building a voice agent for a dental office using LiveKit and AssemblyAI. Patients will be calling to schedule appointments and I need it to accurately capture names, procedure types, and dates. Can you set up the STT pipeline?",
+  "assertions": [
+    {"text": "Uses u3-rt-pro model (not older streaming models)", "type": "semantic"},
+    {"text": "Sets max_turn_silence explicitly (not relying on LiveKit default of 100ms)", "type": "semantic"},
+    {"text": "Sets min_endpointing_delay=0 to avoid additive 500ms", "type": "semantic"},
+    {"text": "Synchronizes VAD thresholds (both ~0.3)", "type": "semantic"},
+    {"text": "Includes keyterms_prompt with dental vocabulary", "type": "semantic"},
+    {"text": "Uses turn_detection='stt' mode", "type": "semantic"},
+    {"text": "Does not use deprecated word_boost parameter", "type": "semantic"}
+  ]
+}

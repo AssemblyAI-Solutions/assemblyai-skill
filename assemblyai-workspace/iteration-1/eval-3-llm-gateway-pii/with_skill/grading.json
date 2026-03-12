@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "run_id": "eval-3-with_skill",
+  "expectations": [
+    {"text": "Auth uses raw API key (no Bearer prefix)", "passed": true, "evidence": "Line 22: Authorization: process.env.ASSEMBLYAI_API_KEY! (no Bearer)"},
+    {"text": "Enables PII redaction with person_name, phone_number, us_social_security_number policies", "passed": true, "evidence": "Lines 46-49: PiiPolicy.PersonName, PiiPolicy.PhoneNumber, PiiPolicy.UsSocialSecurityNumber"},
+    {"text": "Uses LLM Gateway (llm-gateway.assemblyai.com), NOT LeMUR", "passed": true, "evidence": "Line 7: LLM_GATEWAY_URL = 'https://llm-gateway.assemblyai.com/v1/chat/completions'"},
+    {"text": "Uses correct model ID without provider prefix", "passed": true, "evidence": "Line 27: model: 'claude-sonnet-4-5-20250929' (no anthropic/ prefix)"},
+    {"text": "Passes transcript text in messages, not transcript_ids", "passed": true, "evidence": "Lines 74, 88: transcript text passed directly in user message content"},
+    {"text": "Does not use structured outputs (json_schema) with Claude", "passed": true, "evidence": "Line 65-66: Uses system prompt to request JSON format instead of json_schema response_format"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "eval_id": 1,
+  "run_id": "eval-1-without_skill",
+  "expectations": [
+    {"text": "Uses speaker_labels=True", "passed": true, "evidence": "Line 12: speaker_labels=True"},
+    {"text": "Uses summarization with summary_model and summary_type", "passed": true, "evidence": "Lines 13-15: summarization=True, summary_model=informative, summary_type=bullets"},
+    {"text": "Checks transcript.status for errors", "passed": true, "evidence": "Line 22: if transcript.status == aai.TranscriptStatus.error"},
+    {"text": "Uses SDK (not raw API)", "passed": true, "evidence": "Uses assemblyai SDK with aai.Transcriber"}
+  ]
+}

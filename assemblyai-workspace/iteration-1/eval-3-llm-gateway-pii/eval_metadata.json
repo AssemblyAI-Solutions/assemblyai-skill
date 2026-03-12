@@ -1,0 +1,13 @@
+{
+  "eval_id": 3,
+  "eval_name": "llm-gateway-pii-typescript",
+  "prompt": "I need to transcribe customer support calls, redact PII (names, phone numbers, SSNs), and then use Claude through AssemblyAI's API to extract action items and sentiment from each call. Show me how in TypeScript.",
+  "assertions": [
+    {"text": "Auth uses raw API key (no Bearer prefix)", "type": "semantic"},
+    {"text": "Enables PII redaction with person_name, phone_number, us_social_security_number policies", "type": "semantic"},
+    {"text": "Uses LLM Gateway (llm-gateway.assemblyai.com), NOT LeMUR", "type": "semantic"},
+    {"text": "Uses correct model ID without provider prefix (e.g. claude-sonnet-4-5-20250929 not anthropic/claude-...)", "type": "semantic"},
+    {"text": "Passes transcript text in messages, not transcript_ids", "type": "semantic"},
+    {"text": "Does not use structured outputs (json_schema) with Claude", "type": "semantic"}
+  ]
+}

@@ -1,0 +1,243 @@
+# AssemblyAI Streaming (Real-Time) Speech-to-Text Reference
+
+## Streaming v3 Protocol (Current)
+
+### Endpoints
+
+- **Default:** `wss://streaming.assemblyai.com/v3/ws`
+- **EU region:** `wss://streaming.eu.assemblyai.com/v3/ws`
+- **US region:** `wss://streaming.us.assemblyai.com/v3/ws`
+
+### Authentication
+
+Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temporary Token Authentication below).
+
+### Connection Query Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `sample_rate` | Audio sample rate in Hz (e.g., 16000) |
+| `encoding` | Audio encoding: `pcm_s16le` or `pcm_mulaw` |
+| `end_of_turn_confidence_threshold` | Confidence threshold for turn detection (only affects Universal Streaming, not U3 Pro) |
+| `format_turns` | Enable formatted turn output |
+| `keyterms_prompt` | Comma-separated key terms to bias transcription |
+| `inactivity_timeout` | Seconds of silence before session auto-closes |
+| `speaker_labels` | Enable diarization (`true`/`false`) |
+| `max_speakers` | Maximum number of speakers for diarization |
+
+### Messages Sent (Client to Server)
+
+- **Audio:** Binary WebSocket frames containing raw audio data
+- **UpdateConfiguration:** JSON message to change settings mid-stream (see Dynamic Configuration)
+- **ForceEndpoint:** JSON message to force-end the current turn immediately
+- **Terminate:** JSON message to gracefully close the session
+
+### Messages Received (Server to Client)
+
+- **Begin:** Session start confirmation, includes session `id`
+- **Turn:** Transcript data with `transcript` text, `end_of_turn` boolean flag, and `words` array
+- **SpeechStarted:** Voice Activity Detection (VAD) event indicating speech has begun
+- **Termination:** Session end confirmation
+
+### Buffer Size
+
+Send audio in **50ms chunks**.
+
+### Graceful Shutdown
+
+A graceful shutdown requires sending an explicit terminate message:
+
+```json
+{"type": "Terminate"}
+```
+
+Wait for the `Termination` message from the server before closing the WebSocket connection.
+
+---
+
+## Streaming Models
+
+### universal-streaming-english
+
+- Supports 6 languages
+- Punctuation-based turn detection for U3 Pro
+
+### universal-streaming-multilingual
+
+- Supports 6 languages
+- Per-utterance language detection
+
+### whisper-rt
+
+- Supports 99+ languages
+- Auto-detect language only (no manual language selection)
+- Includes non-speech tags: `[Silence]`, `[Music]`
+
+---
+
+## Turn Detection
+
+### U3 Pro
+
+Uses **punctuation-based** turn detection (`.` `?` `!`). The `end_of_turn_confidence_threshold` parameter has **NO effect** on U3 Pro models.
+
+### Universal Streaming
+
+Uses **confidence-based** turn detection. The `end_of_turn_confidence_threshold` defaults to `0.4`.
+
+### Entity Splitting Caveat
+
+A low `min_turn_silence` value can split entities like phone numbers across turns. To avoid this, dynamically increase `min_turn_silence` to **1000ms** during entity collection (e.g., when a user is dictating a phone number or address).
+
+---
+
+## Dynamic Configuration (UpdateConfiguration)
+
+Change `keyterms_prompt`, `min_turn_silence`, and `max_turn_silence` mid-stream without reconnecting.
+
+Send a JSON message:
+
+```json
+{
+  "type": "UpdateConfiguration",
+  "keyterms_prompt": "AssemblyAI, LeMUR",
+  "min_turn_silence": 500,
+  "max_turn_silence": 1500
+}
+```
+
+All fields are optional — include only the ones you want to change.
+
+---
+
+## ForceEndpoint
+
+Force-end the current turn immediately by sending:
+
+```json
+{"type": "ForceEndpoint"}
+```
+
+This causes the server to finalize and emit the current turn with `end_of_turn: true`, even if the model has not detected a natural endpoint.
+
+---
+
+## Temporary Token Authentication
+
+For browser-based applications, use temporary tokens to avoid exposing your API key to the client.
+
+### Request
+
+```
+GET https://streaming.assemblyai.com/v3/token?expires_in_seconds=N
+Authorization: API_KEY
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `expires_in_seconds` | Yes | Token expiry time, 1–600 seconds |
+| `max_session_duration_seconds` | No | Max session length, 60–10800 seconds (default: 10800 / 3 hours) |
+
+### Usage Notes
+
+- Each temporary token is **one-time use** — it can only be used to open a single WebSocket session.
+- Critical for browser-based apps to prevent API key exposure.
+- Connect with: `wss://streaming.assemblyai.com/v3/ws?token=TEMP_TOKEN`
+
+---
+
+## Streaming Diarization
+
+Enable speaker diarization by setting query parameters on the WebSocket URL:
+
+- `speaker_labels=true` — enables diarization
+- `max_speakers=N` — sets the maximum number of expected speakers
+
+### Behavior
+
+- Speaker labels are assigned as `"A"`, `"B"`, `"C"`, etc.
+- Turns under approximately **1 second** in duration receive the label `"UNKNOWN"`.
+- Accuracy improves over time within a session as the model accumulates more speaker data.
+
+---
+
+## Streaming Webhooks
+
+Configure webhooks by adding query parameters to the WebSocket URL:
+
+| Parameter | Description |
+|-----------|-------------|
+| `webhook_url` | URL to receive the webhook POST |
+| `webhook_auth_header_name` | Name of the auth header sent with the webhook |
+| `webhook_auth_header_value` | Value of the auth header sent with the webhook |
+
+The webhook fires **once** after the session ends, delivering all finalized turns from the session.
+
+---
+
+## Error Codes
+
+| Code | Meaning |
+|------|---------|
+| **3005** | Session cancelled (server error) |
+| **3006** | Invalid message type, invalid JSON, or invalid message |
+| **3007** | Input duration violation — audio chunks must be 50ms–1000ms, or audio was sent faster than real-time |
+| **3008** | Session expired — 3-hour maximum reached or temporary token expired |
+| **3009** | Too many concurrent sessions |
+| **1008** | Missing authorization or account issue |
+
+---
+
+## Session Limits
+
+- **Maximum session duration:** 3 hours
+- **Audio chunk size:** Must be between 50ms and 1000ms
+- **Pacing:** Audio cannot be sent faster than real-time
+
+---
+
+## v2 to v3 Migration
+
+### URL Change
+
+- **v2:** `wss://api.assemblyai.com/v2/realtime/ws`
+- **v3:** `wss://streaming.assemblyai.com/v3/ws`
+
+### Message Type Changes
+
+| v2 | v3 |
+|----|-----|
+| `SessionBegins` | `Begin` |
+| `PartialTranscript` / `FinalTranscript` | `Turn` |
+
+### Field Name Changes
+
+| v2 | v3 |
+|----|-----|
+| `message_type` | `type` |
+| `session_id` | `id` |
+| `text` | `transcript` |
+
+### Buffer Size Change
+
+- **v2:** 200ms chunks
+- **v3:** 50ms chunks
+
+---
+
+## Voice Agent Integration Tips
+
+### Recommended Silence Settings
+
+| Profile | `min_turn_silence` | `max_turn_silence` |
+|---------|-------------------|-------------------|
+| **Fast** | 100ms | 800ms |
+| **Balanced** | 100ms | 1000ms |
+| **Patient** | 200ms | 2000ms |
+
+### Additional Recommendations
+
+- Use **16kHz** sample rate for best balance of quality and bandwidth.
+- Align VAD (Voice Activity Detection) thresholds at **0.3** for consistent behavior between your application's VAD and AssemblyAI's streaming endpoint.

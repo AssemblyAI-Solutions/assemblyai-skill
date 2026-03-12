@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "run_id": "eval-2-without_skill",
+  "expectations": [
+    {"text": "Uses u3-rt-pro model (not older streaming models)", "passed": false, "evidence": "No model specified — uses default (likely older universal-streaming model)"},
+    {"text": "Sets max_turn_silence explicitly (not relying on LiveKit default of 100ms)", "passed": false, "evidence": "No max_turn_silence set — relies on LiveKit default of 100ms which is too aggressive"},
+    {"text": "Sets min_endpointing_delay=0 to avoid additive 500ms", "passed": false, "evidence": "Line 132: min_endpointing_delay=0.8 — adds 800ms delay on top of STT endpointing"},
+    {"text": "Synchronizes VAD thresholds (both ~0.3)", "passed": false, "evidence": "Uses default Silero VAD (0.5 threshold) with no AssemblyAI vad_threshold set — mismatch creates dead zone"},
+    {"text": "Includes keyterms_prompt with dental vocabulary", "passed": false, "evidence": "Uses deprecated word_boost parameter instead of keyterms_prompt"},
+    {"text": "Uses turn_detection='stt' mode", "passed": false, "evidence": "No turn_detection specified — uses default VoicePipelineAgent behavior"},
+    {"text": "Does not use deprecated word_boost parameter", "passed": false, "evidence": "Line 47: word_boost=[...] with boost_param='high' — this is the deprecated parameter name"}
+  ]
+}

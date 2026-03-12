@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "basic-transcription-summary",
+  "prompt": "I have a meeting recording at ~/recordings/standup.mp3. I need to transcribe it with speaker labels and get a summary. Use Python and AssemblyAI.",
+  "assertions": [
+    {"text": "Uses speaker_labels=True", "type": "contains"},
+    {"text": "Uses summarization with summary_model and summary_type", "type": "semantic"},
+    {"text": "Checks transcript.status for errors", "type": "semantic"},
+    {"text": "Uses SDK (not raw API)", "type": "semantic"}
+  ]
+}

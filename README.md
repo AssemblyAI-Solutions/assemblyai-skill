@@ -1,12 +1,12 @@
-# AssemblyAI Skill for Claude Code
+# AssemblyAI Skill for AI Coding Agents
 
-A [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) that gives Claude accurate, up-to-date knowledge of AssemblyAI's speech-to-text APIs, SDKs, and voice agent integrations.
+A skill that gives AI coding agents accurate, up-to-date knowledge of AssemblyAI's speech-to-text APIs, SDKs, and voice agent integrations. Works with [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills), [Codex](https://github.com/openai/codex), [Cursor](https://www.cursor.com/), and other coding agents that support skill/rules files.
 
 ## Why a skill?
 
-Claude's training data contains outdated AssemblyAI patterns — deprecated LeMUR API calls, discontinued SDK usage, wrong auth headers, and no knowledge of newer features like the LLM Gateway, streaming v3, or voice agent framework integrations. This skill corrects those mistakes and adds coverage for the full current API surface.
+LLM training data contains outdated AssemblyAI patterns — deprecated LeMUR API calls, discontinued SDK usage, wrong auth headers, and no knowledge of newer features like the LLM Gateway, streaming v3, or voice agent framework integrations. This skill corrects those mistakes and adds coverage for the full current API surface.
 
-**Without the skill**, Claude will:
+**Without the skill**, coding agents will:
 - Use the deprecated LeMUR API instead of the LLM Gateway
 - Use `Authorization: Bearer KEY` instead of `Authorization: KEY`
 - Use `word_boost` instead of `keyterms_prompt`
@@ -37,6 +37,18 @@ claude skill add --from ./assemblyai
 
 Or add it as a [plugin skill](https://docs.anthropic.com/en/docs/claude-code/skills#sharing-skills) from this repo.
 
+### Codex
+
+Copy the `assemblyai/` directory into your project, then reference it in your `AGENTS.md`:
+
+```markdown
+When working with AssemblyAI, read and follow the instructions in assemblyai/SKILL.md
+```
+
+### Cursor / Windsurf / Other Agents
+
+Copy the `assemblyai/` directory into your project and add a rule or instruction pointing to `assemblyai/SKILL.md`. Most agents that support custom rules or docs can ingest the skill content directly. For example, in Cursor you can add the `assemblyai/` folder as project-level documentation.
+
 ## Skill structure
 
 The skill uses progressive disclosure to keep context usage efficient. The core `SKILL.md` (122 lines) is always loaded and contains auth patterns, model overview, common mistakes, and gotchas. Detailed reference files are only loaded when relevant:
@@ -66,4 +78,4 @@ The `assemblyai-workspace/` directory contains test results comparing skill vs. 
 | LLM Gateway + PII redaction (TypeScript) | 6/6 | 3/6 |
 | **Overall** | **17/17 (100%)** | **7/17 (41%)** |
 
-The skill provides the most value for voice agent integrations (where Claude has no training data for framework-specific pitfalls) and LLM Gateway usage (where Claude defaults to the deprecated LeMUR API).
+The skill provides the most value for voice agent integrations (where LLMs have no training data for framework-specific pitfalls) and LLM Gateway usage (where LLMs default to the deprecated LeMUR API). Evals were run with Claude Code but results should generalize to other agents.

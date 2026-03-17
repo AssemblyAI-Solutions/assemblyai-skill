@@ -43,7 +43,7 @@ Authorization: YOUR_API_KEY
 
 | Model | Languages | Best For |
 |-------|-----------|----------|
-| **Universal-3-Pro** | 6 (en, es, de, fr, pt, it) | Highest accuracy, promptable transcription |
+| **Universal-3 Pro** | 6 (en, es, de, fr, pt, it) | Highest accuracy, promptable transcription |
 | **Universal-2** | 99 | Broadest language coverage |
 
 Use `speech_models` as a priority list with fallback: `["universal-3-pro", "universal-2"]`.
@@ -57,7 +57,7 @@ Use `speech_models` as a priority list with fallback: `["universal-3-pro", "univ
 | **whisper-rt** | 99+ | Broadest streaming language support, auto-detect only |
 | **u3-rt-pro** | 6 | Voice agents — punctuation-based turn detection, promptable |
 
-### Prompting (Universal-3-Pro only)
+### Prompting (Universal-3 Pro only)
 
 Two mutually exclusive customization parameters:
 - **`prompt`** (string, up to 1500 words): Natural language instructions for transcription style
@@ -79,15 +79,16 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | Gotcha | Details |
 |--------|---------|
 | `prompt` + `keyterms_prompt` | **Mutually exclusive** — use one or the other |
-| `auto_chapters` + `summarization` | **Mutually exclusive** |
+| `summarization` / `auto_chapters` | **Deprecated.** Use LLM Gateway instead (transcribe → send text to LLM) |
 | PII redaction scope | Only redacts words in `text` — other feature outputs (entities, summaries) may still expose sensitive data |
 | Upload key scoping | Files uploaded with one API key project cannot be transcribed with a different project's key |
 | Structured outputs | NOT supported by Claude models through LLM Gateway — only OpenAI and Gemini |
 | U3 Pro turn detection | Uses punctuation (`.` `?` `!`), NOT confidence thresholds — `end_of_turn_confidence_threshold` has no effect |
 | Negative prompts | Never use "Don't" or "Avoid" in prompts — rephrase as positive instructions |
-| `conversational` summary | Requires `speaker_labels` or `multichannel` enabled |
+| PII audio redaction method | `override_audio_redaction_method: "silence"` replaces PII with silence instead of default beep |
 | Language detection | Requires minimum 15 seconds of spoken audio for reliable results |
-| Disfluencies | `disfluencies: true` works on Universal-2 only; for U3-Pro, use prompting instead |
+| LLM Gateway EU region | Only Anthropic Claude and Google Gemini models available — OpenAI models are NOT supported in EU |
+| Disfluencies | `disfluencies: true` works on Universal-2 only; for U3 Pro, use prompting instead |
 
 ## Common Mistakes
 
@@ -95,6 +96,7 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 |---------|------------|
 | `Authorization: Bearer KEY` | `Authorization: KEY` (no Bearer prefix) |
 | Using LeMUR API | **Deprecated.** Use LLM Gateway instead |
+| Using `summarization` or `auto_chapters` | **Deprecated.** Use LLM Gateway instead (transcribe then summarize via LLM) |
 | LeMUR `transcript_ids` with LLM Gateway | Pass transcript text in messages, not IDs |
 | `anthropic/claude-...` model IDs | No provider prefix: `claude-sonnet-4-5-20250929` not `anthropic/claude-sonnet-4-5-20250929` |
 | Using Java/Go/C# SDKs | **Discontinued.** Use Python, JS/TS, Ruby, or raw API |

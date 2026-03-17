@@ -10,6 +10,8 @@ The LLM Gateway is an OpenAI-compatible API provided by AssemblyAI for applying 
 - Global: `https://llm-gateway.assemblyai.com/v1`
 - EU: `https://llm-gateway.eu.assemblyai.com/v1`
 
+**EU Region Limitation:** Only Anthropic Claude and Google Gemini models are available in the EU region. OpenAI (GPT) models are **not** supported in EU.
+
 **Authentication:**
 - Header: `Authorization: API_KEY`
 - Note: Do NOT use a `Bearer` prefix. Pass the API key directly.

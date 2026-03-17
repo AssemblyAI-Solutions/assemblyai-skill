@@ -186,7 +186,7 @@ for (const result of transcript.content_safety_labels!.results!) {
 
 ---
 
-## 6. Prompting with Universal-3-Pro
+## 6. Prompting with Universal-3 Pro
 
 The `prompt` and `keyterms_prompt` parameters are **mutually exclusive**.
 

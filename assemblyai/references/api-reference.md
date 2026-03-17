@@ -41,13 +41,13 @@ Submit an audio file for transcription. Send a JSON body with the parameters bel
 | `speaker_labels` | boolean | Enable speaker diarization. Default `false`. |
 | `sentiment_analysis` | boolean | Enable sentiment analysis on each sentence. Default `false`. |
 | `entity_detection` | boolean | Enable entity detection. Default `false`. |
-| `auto_chapters` | boolean | Enable auto chapters (topic-based segmentation with summaries). Default `false`. |
+| `auto_chapters` | boolean | **Deprecated.** Enable auto chapters. Use LLM Gateway instead. |
 | `iab_categories` | boolean | Enable IAB content category detection. Default `false`. |
 | `content_safety` | boolean | Enable content safety detection. Default `false`. |
 | `content_safety_confidence` | integer | Minimum confidence threshold (25-100) for content safety labels. |
-| `summarization` | boolean | Enable summarization. Default `false`. |
-| `summary_model` | string | Model for summarization (e.g., `"informative"`, `"conversational"`, `"catchy"`). |
-| `summary_type` | string | Type of summary (e.g., `"bullets"`, `"bullets_verbose"`, `"gist"`, `"headline"`, `"paragraph"`). |
+| `summarization` | boolean | **Deprecated.** Enable summarization. Use LLM Gateway instead. |
+| `summary_model` | string | **Deprecated.** Model for summarization. |
+| `summary_type` | string | **Deprecated.** Type of summary. |
 | `redact_pii` | boolean | Enable PII redaction. Default `false`. |
 | `redact_pii_policies` | array | List of PII policies to redact (see PII Policies section). |
 | `redact_pii_sub` | string | Substitution type: `"hash"` (default) or `"entity_name"`. |

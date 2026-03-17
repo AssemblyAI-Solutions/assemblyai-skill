@@ -257,7 +257,7 @@ print(transcript.text)
 
 ---
 
-## 7. Prompting with Universal-3-Pro
+## 7. Prompting with Universal-3 Pro
 
 Use `prompt` or `keyterms_prompt` to guide transcription. These two options are **mutually exclusive** — use one or the other, not both.
 
@@ -289,7 +289,7 @@ transcript = transcriber.transcribe("https://example.com/audio.mp3", config=conf
 print(transcript.text)
 ```
 
-> **Note on disfluencies:** The `disfluencies=True` option (to include "ums" and "uhs") only works with Universal-2. For Universal-3-Pro, use a `prompt` to instruct the model to include disfluencies instead.
+> **Note on disfluencies:** The `disfluencies=True` option (to include "ums" and "uhs") only works with Universal-2. For Universal-3 Pro, use a `prompt` to instruct the model to include disfluencies instead.
 
 ---
 

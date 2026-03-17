@@ -21,6 +21,7 @@ All Audio Intelligence features are enabled via boolean parameters on the `POST 
 - `redact_pii_sub`: `"hash"` or `"entity_type"`
 - `redact_pii_audio: true` generates audio with PII beeped out
 - `redact_pii_audio_quality`: `"mp3"` or `"wav"`
+- `redact_pii_audio_options.override_audio_redaction_method`: set to `"silence"` to replace PII with silence instead of the default beep
 
 **IMPORTANT:** Redacted audio files expire after 24 hours.
 
@@ -37,20 +38,19 @@ All Audio Intelligence features are enabled via boolean parameters on the `POST 
 - Enable with `entity_detection: true`
 - Response includes `entities` array with `entity_type`, `text`, `start`, `end`
 
-## Summarization
+## Summarization (Deprecated)
 
-- Enable with `summarization: true`
-- `summary_model`: `"informative"`, `"conversational"`, or `"catchy"`
-- `summary_type`: `"bullets"`, `"bullets_verbose"`, `"gist"`, `"headline"`, `"paragraph"`
-- If you specify one of `summary_model`/`summary_type`, you must provide both
-- `conversational` model requires `speaker_labels` or `multichannel` enabled
-- **Mutually exclusive with `auto_chapters`**
+**Deprecated — use the LLM Gateway instead.** Transcribe first, then send transcript text to the LLM Gateway for summarization. This gives better results and more control over output format.
 
-## Auto Chapters
+Legacy parameters (still functional but not recommended for new code):
+- `summarization: true`, `summary_model`, `summary_type`
 
-- Enable with `auto_chapters: true`
-- Response includes `chapters` array with `summary`, `gist`, `headline`, `start`, `end`
-- **Mutually exclusive with `summarization`**
+## Auto Chapters (Deprecated)
+
+**Deprecated — use the LLM Gateway instead.** Transcribe first, then prompt the LLM to segment and summarize the transcript into chapters.
+
+Legacy parameters (still functional but not recommended for new code):
+- `auto_chapters: true`
 
 ## Topic Detection (IAB Taxonomy)
 

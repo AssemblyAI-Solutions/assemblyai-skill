@@ -18,7 +18,7 @@ LLM training data contains outdated AssemblyAI patterns — deprecated LeMUR API
 
 | Area | Details |
 |------|---------|
-| **Pre-recorded transcription** | Universal-3-Pro, Universal-2, prompting, speech_models fallback |
+| **Pre-recorded transcription** | Universal-3 Pro, Universal-2, prompting, speech_models fallback |
 | **Streaming STT** | v3 protocol, v2 legacy, Whisper Streaming, temp tokens, error codes |
 | **Voice agents** | LiveKit and Pipecat integrations, u3-rt-pro, turn detection, silence tuning, latency optimization |
 | **LLM Gateway** | Chat completions, tool calling, agentic workflows, structured output caveats, full model list |
@@ -31,11 +31,15 @@ LLM training data contains outdated AssemblyAI patterns — deprecated LeMUR API
 
 ### Claude Code
 
-```bash
-claude skill add --from ./assemblyai
-```
+Copy the `assemblyai/` directory into your Claude skills folder:
 
-Or add it as a [plugin skill](https://docs.anthropic.com/en/docs/claude-code/skills#sharing-skills) from this repo.
+```bash
+# Personal (available in all projects)
+cp -r assemblyai ~/.claude/skills/
+
+# Project-level (checked into version control, shared with team)
+cp -r assemblyai .claude/skills/
+```
 
 ### Codex
 

@@ -1,6 +1,6 @@
 # AssemblyAI Skill for AI Coding Agents
 
-A skill that gives AI coding agents accurate, up-to-date knowledge of AssemblyAI's speech-to-text APIs, SDKs, and voice agent integrations. Works with [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills), [Codex](https://github.com/openai/codex), [Cursor](https://www.cursor.com/), and other coding agents that support skill/rules files.
+A skill that gives AI coding agents accurate, up-to-date knowledge of AssemblyAI's speech-to-text APIs, SDKs, and voice agent integrations. Install with `npx skills add AssemblyAI/assemblyai-skill` — works with Claude Code, Cursor, Copilot, Codex, and [60+ other coding agents](https://github.com/vercel-labs/skills).
 
 ## Why a skill?
 
@@ -29,46 +29,62 @@ LLM training data contains outdated AssemblyAI patterns — deprecated LeMUR API
 
 ## Installation
 
-### Claude Code
+### Quick install (recommended)
 
-Copy the `assemblyai/` directory into your Claude skills folder:
+Install using the [skills CLI](https://github.com/vercel-labs/skills):
+
+```bash
+npx skills add AssemblyAI/assemblyai-skill
+```
+
+This works with Claude Code, Cursor, Copilot, and 60+ other coding agents. The CLI will prompt you to choose which agent(s) to install for.
+
+To check for updates later: `npx skills check`
+To update: `npx skills update`
+
+### Manual install
+
+#### Claude Code
+
+Copy the `skills/assemblyai/` directory into your Claude skills folder:
 
 ```bash
 # Personal (available in all projects)
-cp -r assemblyai ~/.claude/skills/
+cp -r skills/assemblyai ~/.claude/skills/
 
 # Project-level (checked into version control, shared with team)
-cp -r assemblyai .claude/skills/
+cp -r skills/assemblyai .claude/skills/
 ```
 
-### Codex
+#### Codex
 
-Copy the `assemblyai/` directory into your project, then reference it in your `AGENTS.md`:
+Copy the `skills/assemblyai/` directory into your project, then reference it in your `AGENTS.md`:
 
 ```markdown
 When working with AssemblyAI, read and follow the instructions in assemblyai/SKILL.md
 ```
 
-### Cursor / Windsurf / Other Agents
+#### Cursor / Windsurf / Other Agents
 
-Copy the `assemblyai/` directory into your project and add a rule or instruction pointing to `assemblyai/SKILL.md`. Most agents that support custom rules or docs can ingest the skill content directly. For example, in Cursor you can add the `assemblyai/` folder as project-level documentation.
+Copy the `skills/assemblyai/` directory into your project and add a rule or instruction pointing to `assemblyai/SKILL.md`. Most agents that support custom rules or docs can ingest the skill content directly.
 
 ## Skill structure
 
 The skill uses progressive disclosure to keep context usage efficient. The core `SKILL.md` (122 lines) is always loaded and contains auth patterns, model overview, common mistakes, and gotchas. Detailed reference files are only loaded when relevant:
 
 ```
-assemblyai/
-├── SKILL.md                          # Core skill (always loaded)
-└── references/
-    ├── python-sdk.md                 # Python SDK patterns
-    ├── js-sdk.md                     # JS/TS SDK patterns
-    ├── streaming.md                  # Streaming STT protocol details
-    ├── voice-agents.md               # LiveKit, Pipecat integrations
-    ├── llm-gateway.md                # LLM Gateway models and usage
-    ├── speech-understanding.md       # Translation, speaker ID, formatting
-    ├── audio-intelligence.md         # PII, diarization, summarization, etc.
-    └── api-reference.md              # Full API parameters, endpoints, webhooks
+skills/
+└── assemblyai/
+    ├── SKILL.md                      # Core skill (always loaded)
+    └── references/
+        ├── python-sdk.md             # Python SDK patterns
+        ├── js-sdk.md                 # JS/TS SDK patterns
+        ├── streaming.md              # Streaming STT protocol details
+        ├── voice-agents.md           # LiveKit, Pipecat integrations
+        ├── llm-gateway.md            # LLM Gateway models and usage
+        ├── speech-understanding.md   # Translation, speaker ID, formatting
+        ├── audio-intelligence.md     # PII, diarization, summarization, etc.
+        └── api-reference.md          # Full API parameters, endpoints, webhooks
 ```
 
 ## Eval results

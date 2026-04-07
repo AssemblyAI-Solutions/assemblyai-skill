@@ -1,12 +1,87 @@
 # Voice Agent Integrations
 
-AssemblyAI supports three paths for building voice agents:
+AssemblyAI supports four paths for building voice agents:
 
-1. **LiveKit Agents** — fastest path to deployment
-2. **Pipecat (by Daily)** — open-source, maximum customizability
-3. **Direct WebSocket** — fully custom builds (see `streaming.md`)
+1. **Speech-to-Speech API** — single WebSocket for full voice agent (speech-in → LLM → speech-out)
+2. **LiveKit Agents** — fastest path to deployment using U3 Pro STT
+3. **Pipecat (by Daily)** — open-source, maximum customizability using U3 Pro STT
+4. **Direct WebSocket** — fully custom STT builds (see `streaming.md`)
 
-## Recommended Model
+## Speech-to-Speech API
+
+AssemblyAI's Speech-to-Speech API is a single WebSocket that handles the full voice agent loop: speech-in → LLM → speech-out. It includes built-in VAD, TTS, tool calling, and barge-in handling.
+
+**Note:** Requires a credit card on file to activate.
+
+### Connection
+
+```
+wss://speech-to-speech.us.assemblyai.com/v1/realtime
+Authorization: Bearer YOUR_API_KEY
+```
+
+Audio format: PCM16, 24kHz mono, base64-encoded, ~50ms chunks (2400 bytes).
+
+### Client Events
+
+| Event | Description |
+|-------|-------------|
+| `input.audio` | Send audio chunk: `{"type": "input.audio", "audio": "<base64>"}` |
+| `session.update` | Configure session: `system_prompt`, `greeting`, `tools`, `turn_detection` |
+| `session.resume` | Reconnect to an existing session: `{"type": "session.resume", "session_id": "..."}` |
+| `tool.result` | Return tool call result back to the agent |
+
+### Server Events
+
+| Event | Description |
+|-------|-------------|
+| `session.ready` | Session is initialized and ready |
+| `session.updated` | Session configuration has been updated |
+| `input.speech.started` | VAD detected speech start (for barge-in) |
+| `input.speech.stopped` | VAD detected speech end |
+| `transcript.user.delta` | Partial user transcript |
+| `transcript.user` | Final user transcript |
+| `reply.started` | Agent is starting a reply |
+| `reply.audio` | Agent audio chunk (base64 PCM16 24kHz) |
+| `transcript.agent` | Agent's reply text |
+| `reply.done` | Agent reply complete |
+| `tool.call` | Agent wants to call a tool |
+| `error` | Non-fatal error |
+| `session.error` | Fatal session error |
+
+### Session Resume
+
+Sessions are preserved for **30 seconds** after disconnection. Reconnect using `session.resume` with the session ID to continue without losing context.
+
+### Example session.update
+
+```json
+{
+  "type": "session.update",
+  "system_prompt": "You are a helpful customer support agent for Acme Corp.",
+  "greeting": "Hello! How can I help you today?",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_order",
+        "description": "Look up an order by order ID",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_id": {"type": "string"}
+          },
+          "required": ["order_id"]
+        }
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Recommended Model (STT-based paths)
 
 **`u3-rt-pro`** (Universal-3 Pro Streaming) is the recommended model for all new voice agent work.
 

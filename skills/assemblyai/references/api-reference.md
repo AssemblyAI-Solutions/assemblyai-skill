@@ -31,7 +31,7 @@ Submit an audio file for transcription. Send a JSON body with the parameters bel
 | Parameter | Type | Description |
 |---|---|---|
 | `audio_url` | string | **Required.** URL of the audio file to transcribe. Can be a public URL or an `upload_url` from the upload endpoint. |
-| `speech_models` | object | Specify speech model(s) to use (e.g., `{"class": "nano"}` or `{"class": "universal"}`) |
+| `speech_models` | array | Priority-ordered list of speech models to use (e.g., `["universal-3-pro", "universal-2"]`). First model is used if supported; falls back to next. |
 | `prompt` | string | Provide context or instructions to the model (e.g., spelling guidance, topic context). Mutually exclusive with `keyterms_prompt`. |
 | `keyterms_prompt` | string | A list of key terms/phrases to boost recognition accuracy. Mutually exclusive with `prompt`. |
 | `language_code` | string | Language code (e.g., `"en"`, `"es"`, `"fr"`). Defaults to `"en"`. |
@@ -53,6 +53,7 @@ Submit an audio file for transcription. Send a JSON body with the parameters bel
 | `redact_pii_sub` | string | Substitution type: `"hash"` (default) or `"entity_name"`. |
 | `redact_pii_audio` | boolean | Generate a redacted audio file. Default `false`. |
 | `redact_pii_audio_quality` | string | Quality of redacted audio: `"mp3"` or `"wav"`. |
+| `redact_pii_audio_options` | object | `override_audio_redaction_method: "silence"` replaces PII with silence instead of default beep. `return_redacted_no_speech_audio: true` also redacts non-speech segments. |
 | `filter_profanity` | boolean | Filter profanity from transcript text. Default `false`. |
 | `disfluencies` | boolean | Include disfluencies (um, uh, etc.) in transcript. Default `false`. Universal-2 only. |
 | `multichannel` | boolean | Enable multichannel transcription. Default `false`. |
@@ -61,7 +62,13 @@ Submit an audio file for transcription. Send a JSON body with the parameters bel
 | `webhook_auth_header_name` | string | Custom header name for webhook authentication. |
 | `webhook_auth_header_value` | string | Custom header value for webhook authentication. |
 | `auto_highlights` | boolean | Enable key phrase detection. Default `false`. |
-| `speech_understanding` | boolean | Enable speech understanding (structured extraction). Default `false`. |
+| `speech_understanding` | object | Enable Speech Understanding features inline. Accepts `translation`, `speaker_identification`, and/or `custom_formatting` sub-objects. See `speech-understanding.md`. |
+| `speakers_expected` | integer | Hint for number of speakers (diarization). Deprecated in favor of `speaker_options`. |
+| `speaker_options` | object | Diarization options: `min_speakers_expected` (int, default 1), `max_speakers_expected` (int). |
+| `temperature` | float | 0–1. Controls randomness. Universal-3 Pro only. |
+| `domain` | string | Domain-specific model variant. `"medical-v1"` enables Medical Mode (EN, ES, DE, FR). Universal-3 Pro only. |
+| `remove_audio_tags` | string | `"all"` removes audio event tags from transcript. Universal-3 Pro only. |
+| `language_codes` | array | List of language codes for code-switching (must include `"en"`). Universal-3 Pro only. |
 | `audio_start_from` | integer | Start transcription from this time offset, in **milliseconds**. |
 | `audio_end_at` | integer | End transcription at this time offset, in **milliseconds**. |
 | `speech_threshold` | float | Confidence threshold (0-1) for filtering low-confidence speech. Requires at least **30 seconds** of audio. |

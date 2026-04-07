@@ -36,7 +36,7 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 
 - **Begin:** Session start confirmation, includes session `id`
 - **Turn:** Transcript data with `transcript` text, `end_of_turn` boolean flag, and `words` array
-- **SpeechStarted:** Voice Activity Detection (VAD) event indicating speech has begun
+- **SpeechStarted:** Voice Activity Detection (VAD) event indicating speech has begun (U3 Pro only — use for barge-in detection)
 - **Termination:** Session end confirmation
 
 ### Buffer Size
@@ -93,7 +93,7 @@ A low `min_turn_silence` value can split entities like phone numbers across turn
 
 ## Dynamic Configuration (UpdateConfiguration)
 
-Change `keyterms_prompt`, `min_turn_silence`, and `max_turn_silence` mid-stream without reconnecting.
+Change `keyterms_prompt`, `prompt`, `min_turn_silence`, and `max_turn_silence` mid-stream without reconnecting.
 
 Send a JSON message:
 
@@ -101,6 +101,7 @@ Send a JSON message:
 {
   "type": "UpdateConfiguration",
   "keyterms_prompt": "AssemblyAI, LeMUR",
+  "prompt": "The caller is discussing a billing issue.",
   "min_turn_silence": 500,
   "max_turn_silence": 1500
 }

@@ -28,11 +28,12 @@ Model IDs have NO provider prefix (e.g., use `claude-sonnet-4-5-20250929`, not `
 |-------|----|
 | Claude Opus 4.6 | `claude-opus-4-6` |
 | Claude Sonnet 4.6 | `claude-sonnet-4-6` |
+| Claude 4.5 Opus | `claude-opus-4-5-20251101` |
 | Claude 4.5 Sonnet | `claude-sonnet-4-5-20250929` |
 | Claude 4 Sonnet | `claude-sonnet-4-20250514` |
 | Claude 4 Opus | `claude-opus-4-20250514` |
 | Claude 4.5 Haiku | `claude-haiku-4-5-20251001` |
-| Claude 3.0 Haiku | `claude-3-haiku-20240307` |
+| Claude 3.0 Haiku ⚠️ retiring Apr 20 2026 | `claude-3-haiku-20240307` |
 
 ### OpenAI (GPT)
 
@@ -51,11 +52,23 @@ Model IDs have NO provider prefix (e.g., use `claude-sonnet-4-5-20250929`, not `
 
 | Model | ID |
 |-------|----|
-| Gemini 3 Pro Preview | `gemini-3-pro-preview` |
 | Gemini 3 Flash Preview | `gemini-3-flash-preview` |
 | Gemini 2.5 Pro | `gemini-2.5-pro` |
 | Gemini 2.5 Flash | `gemini-2.5-flash` |
 | Gemini 2.5 Flash-Lite | `gemini-2.5-flash-lite` |
+
+### Alibaba (Qwen)
+
+| Model | ID |
+|-------|----|
+| Qwen3 Next 80B | `qwen3-next-80b-a3b` |
+| Qwen3 32B | `qwen3-32B` |
+
+### Moonshot AI (Kimi)
+
+| Model | ID |
+|-------|----|
+| Kimi K2.5 | `kimi-k2.5` |
 
 ---
 

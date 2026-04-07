@@ -52,7 +52,7 @@ Use `speech_models` as a priority list with fallback: `["universal-3-pro", "univ
 
 | Model | Languages | Best For |
 |-------|-----------|----------|
-| **universal-streaming-english** | 6 | Voice agents, ~300ms latency |
+| **universal-streaming-english** | 1 (English) | Voice agents, ~300ms latency |
 | **universal-streaming-multilingual** | 6 | Per-utterance language detection |
 | **whisper-rt** | 99+ | Broadest streaming language support, auto-detect only |
 | **u3-rt-pro** | 6 | Voice agents — punctuation-based turn detection, promptable |
@@ -70,7 +70,7 @@ Two mutually exclusive customization parameters:
 
 ## LeMUR is Deprecated
 
-**LeMUR is deprecated (sunset March 31, 2026).** Use the LLM Gateway instead. The LLM Gateway is an OpenAI-compatible API. Key difference: you pass transcript text directly in messages (no `transcript_ids`). Transcribe first, then include `transcript.text` in your prompt.
+**LeMUR is deprecated (sunset March 31, 2026 — already sunset).** Use the LLM Gateway instead. The LLM Gateway is an OpenAI-compatible API. Key difference: you pass transcript text directly in messages (no `transcript_ids`). Transcribe first, then include `transcript.text` in your prompt.
 
 See `references/llm-gateway.md` for models, tool calling, structured outputs, and examples.
 

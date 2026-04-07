@@ -18,7 +18,7 @@ All Audio Intelligence features are enabled via boolean parameters on the `POST 
   - `us_social_security_number`
   - `credit_card_number`
   - `date_of_birth`
-- `redact_pii_sub`: `"hash"` or `"entity_type"`
+- `redact_pii_sub`: `"hash"` or `"entity_name"`
 - `redact_pii_audio: true` generates audio with PII beeped out
 - `redact_pii_audio_quality`: `"mp3"` or `"wav"`
 - `redact_pii_audio_options.override_audio_redaction_method`: set to `"silence"` to replace PII with silence instead of the default beep

@@ -310,7 +310,7 @@ const response = await fetch(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "anthropic/claude-sonnet",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         { role: "user", content: "Summarize this transcript..." },
       ],

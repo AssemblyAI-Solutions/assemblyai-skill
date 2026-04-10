@@ -47,10 +47,7 @@ Use `speech_models` to specify a preferred model with automatic fallback:
 
 ```python
 config = aai.TranscriptionConfig(
-    speech_models=[
-        aai.SpeechModel.universal_3_pro,
-        aai.SpeechModel.universal_3,
-    ]
+    speech_models=["universal-3-pro", "universal-2"]
 )
 
 transcriber = aai.Transcriber(config=config)
@@ -309,7 +306,7 @@ response = requests.post(
         "Content-Type": "application/json",
     },
     json={
-        "model": "anthropic/claude-sonnet-4-20250514",
+        "model": "claude-sonnet-4-20250514",
         "messages": [
             {
                 "role": "user",

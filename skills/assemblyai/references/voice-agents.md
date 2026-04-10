@@ -55,15 +55,17 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
 
 ### Example session.update
 
+**Note:** S2S `session.update` wraps all config under a `"session"` key. Tool definitions use a **flat format** (not the nested `function` object used by the LLM Gateway).
+
 ```json
 {
   "type": "session.update",
-  "system_prompt": "You are a helpful customer support agent for Acme Corp.",
-  "greeting": "Hello! How can I help you today?",
-  "tools": [
-    {
-      "type": "function",
-      "function": {
+  "session": {
+    "system_prompt": "You are a helpful customer support agent for Acme Corp.",
+    "greeting": "Hello! How can I help you today?",
+    "tools": [
+      {
+        "type": "function",
         "name": "lookup_order",
         "description": "Look up an order by order ID",
         "parameters": {
@@ -74,8 +76,8 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
           "required": ["order_id"]
         }
       }
-    }
-  ]
+    ]
+  }
 }
 ```
 

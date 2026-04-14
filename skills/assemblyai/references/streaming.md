@@ -14,8 +14,11 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 
 ### Connection Query Parameters
 
+**`speech_model` is required** — there is no default model. Omitting it will cause the request to fail.
+
 | Parameter | Description |
 |-----------|-------------|
+| `speech_model` | **Required.** Model to use: `u3-rt-pro`, `universal-streaming-english`, `universal-streaming-multilingual`, `whisper-rt` |
 | `sample_rate` | Audio sample rate in Hz (e.g., 16000) |
 | `encoding` | Audio encoding: `pcm_s16le` or `pcm_mulaw` |
 | `end_of_turn_confidence_threshold` | Confidence threshold for turn detection (only affects Universal Streaming, not U3 Pro) |
@@ -24,6 +27,7 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 | `inactivity_timeout` | Seconds of silence before session auto-closes |
 | `speaker_labels` | Enable diarization (`true`/`false`) |
 | `max_speakers` | Maximum number of speakers for diarization |
+| `llm_gateway` | JSON-stringified LLM Gateway config — triggers LLM analysis on each completed turn, results delivered as `LLMGatewayResponse` messages |
 
 ### Messages Sent (Client to Server)
 
@@ -37,6 +41,7 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 - **Begin:** Session start confirmation, includes session `id`
 - **Turn:** Transcript data with `transcript` text, `end_of_turn` boolean flag, and `words` array
 - **SpeechStarted:** Voice Activity Detection (VAD) event indicating speech has begun (U3 Pro only — use for barge-in detection)
+- **LLMGatewayResponse:** LLM analysis result for the completed turn (only present when `llm_gateway` connection parameter is set)
 - **Termination:** Session end confirmation
 
 ### Buffer Size
@@ -59,8 +64,8 @@ Wait for the `Termination` message from the server before closing the WebSocket 
 
 ### universal-streaming-english
 
-- Supports 6 languages
-- Punctuation-based turn detection for U3 Pro
+- English only (1 language)
+- Confidence-based turn detection
 
 ### universal-streaming-multilingual
 

@@ -102,7 +102,10 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | Using Java/Go/C# SDKs | **Discontinued.** Use Python, JS/TS, Ruby, or raw API |
 | `word_boost` parameter | Use `keyterms_prompt` instead |
 | Hardcoding v2 streaming URL | v3 (`/v3/ws`) is current; v2 still works but is legacy |
-| Not using `speech_models` | Specify model priority list: `["universal-3-pro", "universal-2"]` |
+| Omitting `speech_models` / `speech_model` | **Required** — no default exists. Omitting causes the request to fail. Use `["universal-3-pro", "universal-2"]` for pre-recorded, `"u3-rt-pro"` for streaming |
+| `aai.SpeechModel.universal_3_pro` in Python SDK | Use raw strings: `"universal-3-pro"`, `"universal-2"` — these enum aliases don't exist in the SDK |
+| S2S `session.update` without `"session"` key | Must wrap config: `{"type":"session.update","session":{...}}` |
+| S2S tool schema using `{"function":{...}}` nesting | S2S tools are flat: `{"type":"function","name":"...","description":"...","parameters":{...}}` |
 
 ## Reference Files
 

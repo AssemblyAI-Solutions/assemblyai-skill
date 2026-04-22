@@ -16,7 +16,7 @@ AssemblyAI's Speech-to-Speech API is a single WebSocket that handles the full vo
 ### Connection
 
 ```
-wss://speech-to-speech.us.assemblyai.com/v1/realtime
+wss://agents.assemblyai.com/v1/realtime
 Authorization: Bearer YOUR_API_KEY
 ```
 
@@ -109,11 +109,13 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
 
 ## Silence Settings by Use Case
 
+These are for **Universal Streaming** models. U3 Pro defaults differ.
+
 | Profile | min_turn_silence | max_turn_silence | Use Case |
 |---------|-----------------|-----------------|----------|
-| **Fast** | 100ms | 800ms | IVR, yes/no, quick confirmations |
-| **Balanced** | 100ms | 1000ms | Most voice agents (recommended default) |
-| **Patient** | 200ms | 2000ms | Entity dictation: emails, phone numbers, addresses |
+| **Aggressive** | 160ms | 400ms | IVR, yes/no, quick confirmations |
+| **Balanced** | 400ms | 1280ms | Most voice agents (recommended default) |
+| **Conservative** | 800ms | 3600ms | Healthcare, complex speech, long pauses |
 
 Low `min_turn_silence` can split entities (phone numbers, emails) across turns. Dynamically increase `max_turn_silence` to 2000-3000ms during entity collection phases, then reduce it afterward.
 

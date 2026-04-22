@@ -26,14 +26,15 @@ Model IDs have NO provider prefix (e.g., use `claude-sonnet-4-5-20250929`, not `
 
 | Model | ID |
 |-------|----|
+| Claude Opus 4.7 | `claude-opus-4-7` |
 | Claude Opus 4.6 | `claude-opus-4-6` |
 | Claude Sonnet 4.6 | `claude-sonnet-4-6` |
-| Claude 4.5 Opus | `claude-opus-4-5-20251101` |
-| Claude 4.5 Sonnet | `claude-sonnet-4-5-20250929` |
-| Claude 4 Sonnet | `claude-sonnet-4-20250514` |
-| Claude 4 Opus | `claude-opus-4-20250514` |
-| Claude 4.5 Haiku | `claude-haiku-4-5-20251001` |
-| Claude 3.0 Haiku ⚠️ retiring Apr 20 2026 | `claude-3-haiku-20240307` |
+| Claude Opus 4.5 | `claude-opus-4-5-20251101` |
+| Claude Sonnet 4.5 | `claude-sonnet-4-5-20250929` |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` |
+| Claude Opus 4 | `claude-opus-4-20250514` |
+| Claude Sonnet 4 | `claude-sonnet-4-20250514` |
+| Claude 3.0 Haiku ⚠️ retired Apr 20 2026 | `claude-3-haiku-20240307` |
 
 ### OpenAI (GPT)
 
@@ -362,7 +363,7 @@ The model will call `get_weather` for each city in separate iterations, then pro
 
 Use the `response_format` parameter with `type: "json_schema"` to get structured JSON responses that conform to a specific schema.
 
-**IMPORTANT:** Structured outputs with `json_schema` are only supported by OpenAI and Gemini models. Claude models do NOT support this feature. For Claude, instruct the model to return JSON via the system prompt instead.
+**Supported models:** OpenAI (GPT-4.1, GPT-5.x), Gemini, Claude (4.5+), Alibaba Cloud Qwen, Moonshot AI Kimi. **NOT supported:** `gpt-oss` models, Claude 3.x models. For unsupported models, instruct via system prompt instead.
 
 ### Example
 

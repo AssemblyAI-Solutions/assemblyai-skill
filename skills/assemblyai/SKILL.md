@@ -23,6 +23,7 @@ Authorization: YOUR_API_KEY
 | LLM Gateway | `https://llm-gateway.assemblyai.com/v1` | `https://llm-gateway.eu.assemblyai.com/v1` |
 | Streaming v3 | `wss://streaming.assemblyai.com/v3/ws` | `wss://streaming.eu.assemblyai.com/v3/ws` |
 | Streaming v2 (legacy) | `wss://api.assemblyai.com/v2/realtime/ws` | — |
+| Voice Agent API | `wss://agents.assemblyai.com/v1/realtime` | — |
 
 ## SDKs
 
@@ -43,8 +44,8 @@ Authorization: YOUR_API_KEY
 
 | Model | Languages | Best For |
 |-------|-----------|----------|
-| **Universal-3 Pro** | 6 (en, es, de, fr, pt, it) | Highest accuracy, promptable transcription |
-| **Universal-2** | 99 | Broadest language coverage |
+| **Universal-3 Pro** | 6 (en, es, de, fr, pt, it) | Highest accuracy, promptable transcription, keyterms up to 1,000 words |
+| **Universal-2** | 99 | Broadest language coverage, keyterms up to 200 words |
 
 Use `speech_models` as a priority list with fallback: `["universal-3-pro", "universal-2"]`.
 
@@ -56,6 +57,15 @@ Use `speech_models` as a priority list with fallback: `["universal-3-pro", "univ
 | **universal-streaming-multilingual** | 6 | Per-utterance language detection |
 | **whisper-rt** | 99+ | Broadest streaming language support, auto-detect only |
 | **u3-rt-pro** | 6 | Voice agents — punctuation-based turn detection, promptable |
+
+### Medical Mode (Add-On)
+
+`domain: "medical-v1"` enables Medical Mode — an add-on that improves accuracy for medical terminology (medications, procedures, conditions, dosages). Works with both pre-recorded and streaming models.
+
+- **Pre-recorded:** Universal-3 Pro (`domain: "medical-v1"` in request body), Universal-2
+- **Streaming:** u3-rt-pro, universal-streaming-english, universal-streaming-multilingual
+- **Supported languages:** English, Spanish, German, French (4 languages only)
+- Billed as a separate add-on. If used with an unsupported language, the API ignores `domain` and returns a warning — transcript still completes and you are NOT charged for Medical Mode.
 
 ### Prompting (Universal-3 Pro only)
 
@@ -82,19 +92,21 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | `summarization` / `auto_chapters` | **Deprecated.** Use LLM Gateway instead (transcribe → send text to LLM) |
 | PII redaction scope | Only redacts words in `text` — other feature outputs (entities, summaries) may still expose sensitive data |
 | Upload key scoping | Files uploaded with one API key project cannot be transcribed with a different project's key |
-| Structured outputs | NOT supported by Claude models through LLM Gateway — only OpenAI and Gemini |
+| Structured outputs | Supported by OpenAI, Gemini, Claude 4.5+, Qwen, and Kimi — Claude 3.x does NOT support `json_schema` structured outputs |
 | U3 Pro turn detection | Uses punctuation (`.` `?` `!`), NOT confidence thresholds — `end_of_turn_confidence_threshold` has no effect |
 | Negative prompts | Never use "Don't" or "Avoid" in prompts — rephrase as positive instructions |
 | PII audio redaction method | `override_audio_redaction_method: "silence"` replaces PII with silence instead of default beep |
 | Language detection | Requires minimum 15 seconds of spoken audio for reliable results |
 | LLM Gateway EU region | Only Anthropic Claude and Google Gemini models available — OpenAI models are NOT supported in EU |
 | Disfluencies | `disfluencies: true` works on Universal-2 only; for U3 Pro, use prompting instead |
+| Medical Mode unsupported language | API silently skips Medical Mode and does not charge for it — check for warning in response |
+| Voice Agent API URL | The S2S endpoint is `wss://agents.assemblyai.com/v1/realtime` — NOT `speech-to-speech.us.assemblyai.com` |
 
 ## Common Mistakes
 
 | Mistake | Correction |
 |---------|------------|
-| `Authorization: Bearer KEY` | `Authorization: KEY` (no Bearer prefix) |
+| `Authorization: Bearer KEY` | `Authorization: KEY` (no Bearer prefix) — BUT the Voice Agent API (`agents.assemblyai.com`) uses `Authorization: Bearer KEY` |
 | Using LeMUR API | **Deprecated.** Use LLM Gateway instead |
 | Using `summarization` or `auto_chapters` | **Deprecated.** Use LLM Gateway instead (transcribe then summarize via LLM) |
 | LeMUR `transcript_ids` with LLM Gateway | Pass transcript text in messages, not IDs |
@@ -106,6 +118,8 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | `aai.SpeechModel.universal_3_pro` in Python SDK | Use raw strings: `"universal-3-pro"`, `"universal-2"` — these enum aliases don't exist in the SDK |
 | S2S `session.update` without `"session"` key | Must wrap config: `{"type":"session.update","session":{...}}` |
 | S2S tool schema using `{"function":{...}}` nesting | S2S tools are flat: `{"type":"function","name":"...","description":"...","parameters":{...}}` |
+| Voice Agent S2S URL `speech-to-speech.us.assemblyai.com` | Correct URL: `wss://agents.assemblyai.com/v1/realtime` |
+| Medical Mode `domain: "medical"` | Correct value is `domain: "medical-v1"` |
 
 ## Reference Files
 

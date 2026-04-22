@@ -69,3 +69,13 @@ Legacy parameters (still functional but not recommended for new code):
 - Enable with `auto_highlights: true`
 - Extracts key phrases from the transcript
 - Response includes `auto_highlights_result` with `results` array
+
+## Medical Mode (Add-On)
+
+- Enable with `domain: "medical-v1"` in the request body
+- Improves accuracy for medical terminology: medications, procedures, conditions, dosages
+- Supported models: Universal-3 Pro, Universal-2 (pre-recorded); all streaming models
+- Supported languages: English, Spanish, German, French only
+- Billed as a separate add-on
+- If used with an unsupported language, the API ignores `domain` and returns a warning — no charge is applied
+- Can be combined with diarization and keyterms prompting

@@ -27,6 +27,7 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 | `inactivity_timeout` | Seconds of silence before session auto-closes |
 | `speaker_labels` | Enable diarization (`true`/`false`) |
 | `max_speakers` | Maximum number of speakers for diarization |
+| `domain` | Set to `"medical-v1"` to enable Medical Mode (improves accuracy for medical terminology). Supported models: all streaming models. Supported languages: en, es, de, fr. |
 | `llm_gateway` | JSON-stringified LLM Gateway config — triggers LLM analysis on each completed turn, results delivered as `LLMGatewayResponse` messages |
 
 ### Messages Sent (Client to Server)
@@ -235,13 +236,13 @@ The webhook fires **once** after the session ends, delivering all finalized turn
 
 ## Voice Agent Integration Tips
 
-### Recommended Silence Settings
+### Recommended Silence Settings (Universal Streaming models)
 
-| Profile | `min_turn_silence` | `max_turn_silence` |
-|---------|-------------------|-------------------|
-| **Fast** | 100ms | 800ms |
-| **Balanced** | 100ms | 1000ms |
-| **Patient** | 200ms | 2000ms |
+| Profile | `min_turn_silence` | `max_turn_silence` | Use case |
+|---------|-------------------|--------------------|----------|
+| **Aggressive** | 160ms | 400ms | IVR, quick confirmations, yes/no |
+| **Balanced** | 400ms | 1280ms | General voice agents (recommended default) |
+| **Conservative** | 800ms | 3600ms | Healthcare, complex speech, long pauses |
 
 ### Additional Recommendations
 

@@ -66,7 +66,7 @@ Submit an audio file for transcription. Send a JSON body with the parameters bel
 | `speakers_expected` | integer | Hint for number of speakers (diarization). Deprecated in favor of `speaker_options`. |
 | `speaker_options` | object | Diarization options: `min_speakers_expected` (int, default 1), `max_speakers_expected` (int). |
 | `temperature` | float | 0–1. Controls randomness. Universal-3 Pro only. |
-| `domain` | string | Domain-specific model variant. `"medical-v1"` enables Medical Mode (EN, ES, DE, FR). Universal-3 Pro only. |
+| `domain` | string | Domain-specific model variant. `"medical-v1"` enables Medical Mode (EN, ES, DE, FR). Supported on Universal-3 Pro and Universal-2. |
 | `remove_audio_tags` | string | `"all"` removes audio event tags from transcript. Universal-3 Pro only. |
 | `language_codes` | array | List of language codes for code-switching (must include `"en"`). Universal-3 Pro only. |
 | `audio_start_from` | integer | Start transcription from this time offset, in **milliseconds**. |

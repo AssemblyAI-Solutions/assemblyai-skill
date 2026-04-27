@@ -34,7 +34,7 @@ Model IDs have NO provider prefix (e.g., use `claude-sonnet-4-5-20250929`, not `
 | Claude Haiku 4.5 | `claude-haiku-4-5-20251001` |
 | Claude Opus 4 | `claude-opus-4-20250514` |
 | Claude Sonnet 4 | `claude-sonnet-4-20250514` |
-| Claude 3.0 Haiku ⚠️ retired Apr 20 2026 | `claude-3-haiku-20240307` |
+| Claude 3.0 Haiku ⚠️ **retired** | `claude-3-haiku-20240307` |
 
 ### OpenAI (GPT)
 
@@ -83,6 +83,8 @@ Supports:
 - Multi-turn conversations (pass full message history)
 - System prompts (`role: "system"`)
 - User and assistant messages
+- `prompt` shorthand — pass a simple string instead of a `messages` array for single-turn requests
+- `stream: true` — stream responses as server-sent events (SSE). **OpenAI models only.**
 
 ### cURL Example
 
@@ -253,7 +255,7 @@ When the model decides to call a tool, the response includes `finish_reason: "to
 
 ### Returning Tool Results
 
-After executing the tool, pass the result back using the `function_call_output` role:
+After executing the tool, pass the result back using the `tool` role with `tool_call_id`:
 
 ```json
 {
@@ -275,7 +277,7 @@ After executing the tool, pass the result back using the `function_call_output` 
       ]
     },
     {
-      "role": "function_call_output",
+      "role": "tool",
       "tool_call_id": "call_abc123",
       "content": "{\"temperature\": 62, \"unit\": \"fahrenheit\", \"condition\": \"foggy\"}"
     }
@@ -284,8 +286,8 @@ After executing the tool, pass the result back using the `function_call_output` 
 ```
 
 Message roles used in tool calling:
-- `function_call` — Used when the assistant invokes a tool.
-- `function_call_output` — Used to return the result of a tool execution back to the model.
+- `assistant` (with `tool_calls` array) — The model's response when invoking a tool.
+- `tool` (with `tool_call_id`) — Return the result of a tool execution back to the model.
 
 ---
 
@@ -349,7 +351,7 @@ for i in range(max_iterations):
             # Execute the tool (your implementation)
             tool_result = execute_tool(tool_call["function"]["name"], tool_call["function"]["arguments"])
             messages.append({
-                "role": "function_call_output",
+                "role": "tool",
                 "tool_call_id": tool_call["id"],
                 "content": tool_result,
             })
@@ -462,6 +464,26 @@ result = response.json()
 action_items = json.loads(result["choices"][0]["message"]["content"])
 print(action_items)
 ```
+
+---
+
+## Fallback Models
+
+Use `fallbacks` to specify backup models that the LLM Gateway automatically tries if the primary model fails. Specify `fallback_config.depth` to chain up to 2 fallbacks.
+
+```json
+{
+  "model": "kimi-k2.5",
+  "messages": [{"role": "user", "content": "Summarize this transcript..."}],
+  "fallbacks": [
+    {"model": "claude-sonnet-4-6"}
+  ]
+}
+```
+
+Override any field per fallback (messages, temperature, max_tokens). Fields not specified inherit from the original request.
+
+**Retry behavior:** By default, `fallback_config.retry` is `true`, which automatically retries the request once after 500ms on failure — even if no `fallbacks` are set. To disable: `{"fallback_config": {"retry": false}}`.
 
 ---
 

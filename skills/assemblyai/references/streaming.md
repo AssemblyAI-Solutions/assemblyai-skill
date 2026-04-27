@@ -22,8 +22,8 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 | `sample_rate` | Audio sample rate in Hz (e.g., 16000) |
 | `encoding` | Audio encoding: `pcm_s16le` or `pcm_mulaw` |
 | `end_of_turn_confidence_threshold` | Confidence threshold for turn detection (only affects Universal Streaming, not U3 Pro) |
-| `format_turns` | Enable formatted turn output |
-| `keyterms_prompt` | Comma-separated key terms to bias transcription |
+| `format_turns` | Set to `true` to enable formatted final transcripts with punctuation, casing, and inverse text normalization (dates, times, phone numbers). Also activates turn-level keyterm boosting for Universal Streaming models. |
+| `keyterms_prompt` | JSON-encoded array of strings (up to 100 terms, max 50 chars each) to bias transcription. When passing via URL query param, must be JSON.stringify'd: `keyterms_prompt=["term1","term2"]`. Costs additional $0.04/hr. |
 | `inactivity_timeout` | Seconds of silence before session auto-closes |
 | `speaker_labels` | Enable diarization (`true`/`false`) |
 | `max_speakers` | Maximum number of speakers for diarization |
@@ -106,7 +106,7 @@ Send a JSON message:
 ```json
 {
   "type": "UpdateConfiguration",
-  "keyterms_prompt": "AssemblyAI, LeMUR",
+  "keyterms_prompt": ["AssemblyAI", "LeMUR"],
   "prompt": "The caller is discussing a billing issue.",
   "min_turn_silence": 500,
   "max_turn_silence": 1500

@@ -120,6 +120,7 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | S2S tool schema using `{"function":{...}}` nesting | S2S tools are flat: `{"type":"function","name":"...","description":"...","parameters":{...}}` |
 | Voice Agent S2S URL `speech-to-speech.us.assemblyai.com` | Correct URL: `wss://agents.assemblyai.com/v1/realtime` |
 | Medical Mode `domain: "medical"` | Correct value is `domain: "medical-v1"` |
+| LLM Gateway tool result `role: "function_call_output"` | Correct role is `"tool"` — use `{"role": "tool", "tool_call_id": "...", "content": "..."}` |
 
 ## Reference Files
 

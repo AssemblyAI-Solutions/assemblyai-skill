@@ -16,7 +16,7 @@ AssemblyAI's Speech-to-Speech API is a single WebSocket that handles the full vo
 ### Connection
 
 ```
-wss://agents.assemblyai.com/v1/realtime
+wss://agents.assemblyai.com/v1/voice
 Authorization: Bearer YOUR_API_KEY
 ```
 
@@ -81,6 +81,18 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
 }
 ```
 
+### Available Voices
+
+Set a voice via `session.output.voice` in `session.update`. Can be changed mid-conversation.
+
+**English voices:** `josh`, `dylan`, `dawn`, `summer`, `andy`, `zoe`, `alexis`, `michael`, `pete`, `brian`, `diana`, `grace`, `kai`, `claire`, `nathan`, `audrey` (US); `melissa`, `will` (UK)
+
+**Multilingual voices** (also speak English with code-switching): `gautam` (Hindi), `luke`/`lily` (Mandarin), `alexei` (Russian), `max`/`anna` (German), `antoine` (French), `jennie`/`kevin` (Korean), `kenji`/`yuki` (Japanese), `nova`/`marco` (Italian), `sofia`/`santiago` (Spanish), `leo` (Colombian Spanish)
+
+```json
+{"type": "session.update", "session": {"output": {"voice": "dawn"}}}
+```
+
 ---
 
 ## Recommended Model (STT-based paths)
@@ -127,7 +139,9 @@ Low `min_turn_silence` can split entities (phone numbers, emails) across turns. 
 
 ```bash
 # For u3-rt-pro (requires livekit-agents >= 1.4.4)
-pip install "livekit-agents[assemblyai,silero,codecs]~=1.0" python-dotenv livekit-plugins-turn-detector~=1.0
+pip install "livekit-agents[assemblyai,silero,codecs]~=1.5" python-dotenv
+# If using MultilingualModel turn detection, also install:
+pip install "livekit-plugins-turn-detector~=1.0"
 ```
 
 Required env vars: `ASSEMBLYAI_API_KEY`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, plus LLM/TTS provider keys.
@@ -139,7 +153,7 @@ Required env vars: `ASSEMBLYAI_API_KEY`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVE
 ```python
 from dotenv import load_dotenv
 from livekit import agents
-from livekit.agents import AgentSession, Agent
+from livekit.agents import AgentSession, Agent, TurnHandlingOptions
 from livekit.plugins import assemblyai, silero
 
 load_dotenv()
@@ -151,6 +165,10 @@ class Assistant(Agent):
 async def entrypoint(ctx: agents.JobContext):
     await ctx.connect()
     session = AgentSession(
+        turn_handling=TurnHandlingOptions(
+            turn_detection="stt",
+            endpointing={"min_delay": 0},  # CRITICAL: avoid additive 500ms delay
+        ),
         stt=assemblyai.STT(
             model="u3-rt-pro",
             min_turn_silence=100,
@@ -158,8 +176,6 @@ async def entrypoint(ctx: agents.JobContext):
             vad_threshold=0.3,
         ),
         vad=silero.VAD.load(activation_threshold=0.3),
-        turn_detection="stt",
-        min_endpointing_delay=0,  # CRITICAL: avoid additive 500ms delay
     )
     await session.start(room=ctx.room, agent=Assistant())
     await session.generate_reply(instructions="Greet the user and offer your assistance.")
@@ -173,14 +189,16 @@ Run with `python voice_agent.py dev`, test at `https://agents-playground.livekit
 #### MultilingualModel (LiveKit's own turn detection)
 
 ```python
+from livekit.agents import AgentSession, TurnHandlingOptions
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 session = AgentSession(
-    turn_detection=MultilingualModel(),
+    turn_handling=TurnHandlingOptions(
+        turn_detection=MultilingualModel(),
+        endpointing={"min_delay": 0.5, "max_delay": 3.0},
+    ),
     stt=assemblyai.STT(model="u3-rt-pro", vad_threshold=0.3),
     vad=silero.VAD.load(activation_threshold=0.3),
-    min_endpointing_delay=0.5,
-    max_endpointing_delay=3.0,
 )
 ```
 
@@ -190,10 +208,11 @@ Other modes: **VAD-only** (purely silence-based) and **Manual** (explicit `sessi
 
 | Pitfall | Fix |
 |---------|-----|
-| `max_turn_silence` defaults to **100ms** in LiveKit (API default is 1000ms) | Always set `max_turn_silence=1000` explicitly |
-| `min_endpointing_delay` adds **500ms** on top of AssemblyAI endpointing | Set `min_endpointing_delay=0` in STT mode |
+| `max_turn_silence` defaults to **100ms** in LiveKit plugin (API default is 1000ms) | Always set `max_turn_silence=1000` explicitly in STT mode |
+| `endpointing.min_delay` adds **500ms** on top of AssemblyAI endpointing | Set `endpointing={"min_delay": 0}` inside `TurnHandlingOptions` in STT mode |
 | Silero VAD default threshold is 0.5, AssemblyAI default is 0.3 | Set both to 0.3 — mismatch creates a dead zone delaying interruption |
 | u3-rt-pro requires livekit-agents >= 1.4.4 | Check version before debugging |
+| Old API: `turn_detection="stt"` directly on `AgentSession` | Use `turn_handling=TurnHandlingOptions(turn_detection="stt", ...)` (livekit-agents v1.5+) |
 
 ---
 

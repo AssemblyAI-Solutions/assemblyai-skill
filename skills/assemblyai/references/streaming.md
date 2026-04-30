@@ -29,6 +29,10 @@ Connect via query parameter: `?token=API_KEY` or use a temporary token (see Temp
 | `speaker_labels` | Enable diarization (`true`/`false`) |
 | `max_speakers` | Maximum number of speakers for diarization |
 | `domain` | Set to `"medical-v1"` to enable Medical Mode (improves accuracy for medical terminology). Supported models: all streaming models. Supported languages: en, es, de, fr. |
+| `redact_pii` | Enable real-time PII redaction. Default `false`. Only applies to **final turns**. See Streaming PII Redaction below. |
+| `redact_pii_policies` | PII entity types to redact. Pass a comma-separated string (e.g. `person_name,phone_number`) over the raw WebSocket or an array via the SDK. Default: all. |
+| `redact_pii_sub` | Replacement scheme: `hash` (default — replaces with `#` chars) or `entity_name` (replaces with `[ENTITY_TYPE]`). |
+| `include_partial_turns` | Whether to include partial (non-final) turns. Defaults to `true` normally, but **`false` automatically** when `redact_pii` is `true` so unredacted text never reaches the client. |
 | `llm_gateway` | JSON-stringified LLM Gateway config — triggers LLM analysis on each completed turn, results delivered as `LLMGatewayResponse` messages |
 
 ### Messages Sent (Client to Server)
@@ -153,6 +157,29 @@ Authorization: API_KEY
 - Each temporary token is **one-time use** — it can only be used to open a single WebSocket session.
 - Critical for browser-based apps to prevent API key exposure.
 - Connect with: `wss://streaming.assemblyai.com/v3/ws?token=TEMP_TOKEN`
+
+---
+
+## Streaming PII Redaction
+
+Real-time PII redaction in streaming sessions. Detected PII is replaced in **final turns only** before being sent to the client.
+
+- Supported models: `u3-rt-pro`, `universal-streaming-english`, `universal-streaming-multilingual`
+- When `redact_pii=true`, `include_partial_turns` defaults to `false` automatically — partials would otherwise leak unredacted text
+- Audio redaction is **not** available for streaming. For redacted audio files, use [pre-recorded PII redaction](https://www.assemblyai.com/docs/guardrails/pii-redaction) with `redact_pii_audio`
+- Same policies as pre-recorded redaction (`person_name`, `phone_number`, `email_address`, `credit_card_number`, `us_social_security_number`, `date_of_birth`, etc.)
+
+Example connection URL:
+
+```
+wss://streaming.assemblyai.com/v3/ws?speech_model=u3-rt-pro&sample_rate=16000&format_turns=true&redact_pii=true&redact_pii_policies=person_name,phone_number,email_address&redact_pii_sub=entity_name
+```
+
+Example output with `entity_name` substitution:
+
+```
+Hi, my name is [PERSON_NAME] and you can reach me at [PHONE_NUMBER].
+```
 
 ---
 

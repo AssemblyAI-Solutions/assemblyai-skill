@@ -54,6 +54,7 @@ Submit an audio file for transcription. Send a JSON body with the parameters bel
 | `redact_pii_audio` | boolean | Generate a redacted audio file. Default `false`. |
 | `redact_pii_audio_quality` | string | Quality of redacted audio: `"mp3"` or `"wav"`. |
 | `redact_pii_audio_options` | object | `override_audio_redaction_method: "silence"` replaces PII with silence instead of default beep. `return_redacted_no_speech_audio: true` also redacts non-speech segments. |
+| `redact_pii_return_unredacted` | boolean | When `true`, returns the original unredacted transcript alongside the redacted one in a single request. Response then includes `unredacted_text`, `unredacted_words`, and `unredacted_utterances`. Default `false`. |
 | `filter_profanity` | boolean | Filter profanity from transcript text. Default `false`. |
 | `disfluencies` | boolean | Include disfluencies (um, uh, etc.) in transcript. Default `false`. Universal-2 only. |
 | `multichannel` | boolean | Enable multichannel transcription. Default `false`. |

@@ -23,7 +23,7 @@ Authorization: YOUR_API_KEY
 | LLM Gateway | `https://llm-gateway.assemblyai.com/v1` | `https://llm-gateway.eu.assemblyai.com/v1` |
 | Streaming v3 | `wss://streaming.assemblyai.com/v3/ws` | `wss://streaming.eu.assemblyai.com/v3/ws` |
 | Streaming v2 (legacy) | `wss://api.assemblyai.com/v2/realtime/ws` | — |
-| Voice Agent API | `wss://agents.assemblyai.com/v1/voice` | — |
+| Voice Agent API | `wss://agents.assemblyai.com/v1/ws` | — |
 
 ## SDKs
 
@@ -100,7 +100,9 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | LLM Gateway EU region | Only Anthropic Claude and Google Gemini models available — OpenAI models are NOT supported in EU |
 | Disfluencies | `disfluencies: true` works on Universal-2 only; for U3 Pro, use prompting instead |
 | Medical Mode unsupported language | API silently skips Medical Mode and does not charge for it — check for warning in response |
-| Voice Agent API URL | The S2S endpoint is `wss://agents.assemblyai.com/v1/voice` — NOT `/v1/realtime` (old) or `speech-to-speech.us.assemblyai.com` (very old) |
+| Voice Agent API URL | The Voice Agent endpoint is `wss://agents.assemblyai.com/v1/ws` — NOT `/v1/voice` (renamed April 2026), `/v1/realtime` (older), or `speech-to-speech.us.assemblyai.com` (very old) |
+| Voice Agent `tool.call` field | The argument dict is named `arguments`, not `args` (renamed April 2026) |
+| Voice Agent turn detection fields | Use `min_silence` (default 600ms) and `max_silence` (default 1500ms) under `session.input.turn_detection` — `min_turn_silence`/`max_turn_silence` are the streaming/LiveKit/Pipecat field names, not Voice Agent API |
 
 ## Common Mistakes
 
@@ -118,7 +120,8 @@ See `references/llm-gateway.md` for models, tool calling, structured outputs, an
 | `aai.SpeechModel.universal_3_pro` in Python SDK | Use raw strings: `"universal-3-pro"`, `"universal-2"` — these enum aliases don't exist in the SDK |
 | S2S `session.update` without `"session"` key | Must wrap config: `{"type":"session.update","session":{...}}` |
 | S2S tool schema using `{"function":{...}}` nesting | S2S tools are flat: `{"type":"function","name":"...","description":"...","parameters":{...}}` |
-| Voice Agent S2S URL | Correct URL: `wss://agents.assemblyai.com/v1/voice` — not `/v1/realtime` (old) or `speech-to-speech.us.assemblyai.com` (very old) |
+| Voice Agent S2S URL | Correct URL: `wss://agents.assemblyai.com/v1/ws` — not `/v1/voice` (renamed April 2026), `/v1/realtime` (older), or `speech-to-speech.us.assemblyai.com` (very old) |
+| Voice Agent `tool.call` `args` field | Renamed to `arguments` — `event["arguments"]` is the parameter dict |
 | Medical Mode `domain: "medical"` | Correct value is `domain: "medical-v1"` |
 | LLM Gateway tool result `role: "function_call_output"` | Correct role is `"tool"` — use `{"role": "tool", "tool_call_id": "...", "content": "..."}` |
 

@@ -22,10 +22,13 @@ All Audio Intelligence features are enabled via boolean parameters on the `POST 
 - `redact_pii_audio: true` generates audio with PII beeped out
 - `redact_pii_audio_quality`: `"mp3"` or `"wav"`
 - `redact_pii_audio_options.override_audio_redaction_method`: set to `"silence"` to replace PII with silence instead of the default beep
+- `redact_pii_return_unredacted: true` returns the original unredacted transcript alongside the redacted one in **a single API request**. The response then includes `unredacted_text`, `unredacted_words`, and `unredacted_utterances` fields. Default `false` — `text`/`words`/`utterances` remain fully redacted unless this flag is set.
 
 **IMPORTANT:** Redacted audio files expire after 24 hours.
 
 **IMPORTANT:** PII redaction only affects the `text` property — other feature outputs (entity detection, summarization, etc.) may still expose sensitive data in their results.
+
+**IMPORTANT:** Setting `redact_pii_return_unredacted: true` opts in to receiving sensitive data in the response. Treat the `unredacted_*` fields with the same care as any unredacted source.
 
 ## Sentiment Analysis
 

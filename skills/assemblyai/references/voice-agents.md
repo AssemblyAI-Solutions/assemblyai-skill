@@ -7,47 +7,56 @@ AssemblyAI supports four paths for building voice agents:
 3. **Pipecat (by Daily)** — open-source, maximum customizability using U3 Pro STT
 4. **Direct WebSocket** — fully custom STT builds (see `streaming.md`)
 
-## Speech-to-Speech API
+## Voice Agent API
 
-AssemblyAI's Speech-to-Speech API is a single WebSocket that handles the full voice agent loop: speech-in → LLM → speech-out. It includes built-in VAD, TTS, tool calling, and barge-in handling.
-
-**Note:** Requires a credit card on file to activate.
+AssemblyAI's Voice Agent API is a single WebSocket that handles the full voice agent loop: speech-in → LLM → speech-out. It includes built-in turn detection, TTS, tool calling, and barge-in handling.
 
 ### Connection
 
 ```
-wss://agents.assemblyai.com/v1/voice
+wss://agents.assemblyai.com/v1/ws
 Authorization: Bearer YOUR_API_KEY
 ```
 
-Audio format: PCM16, 24kHz mono, base64-encoded, ~50ms chunks (2400 bytes).
+For browser-based clients, generate a [temporary token](https://www.assemblyai.com/docs/voice-agents/voice-agent-api/browser-integration) and pass it as a query parameter instead: `wss://agents.assemblyai.com/v1/ws?token=YOUR_TEMP_TOKEN`.
+
+### Audio Format
+
+All audio exchanged is **base64-encoded, mono**. The encoding determines the sample rate. Input and output encodings are configured independently under `session.input.format` and `session.output.format`.
+
+| Encoding       | Sample rate  | Bit depth                            | Best for                                   |
+| -------------- | ------------ | ------------------------------------ | ------------------------------------------ |
+| `audio/pcm`    | 24,000 Hz    | 16-bit signed int (little-endian)    | Default — highest quality, browser/desktop |
+| `audio/pcmu`   | 8,000 Hz     | 8-bit μ-law                          | Telephony (G.711 μ-law)                    |
+| `audio/pcma`   | 8,000 Hz     | 8-bit A-law                          | Telephony (G.711 A-law)                    |
+
+Defaults to `audio/pcm` (24 kHz) on both input and output if omitted. ~50ms chunks work well.
 
 ### Client Events
 
 | Event | Description |
 |-------|-------------|
 | `input.audio` | Send audio chunk: `{"type": "input.audio", "audio": "<base64>"}` |
-| `session.update` | Configure session: `system_prompt`, `greeting`, `tools`, `turn_detection` |
+| `session.update` | Configure session: `system_prompt`, `greeting`, `tools`, `input` (format/keyterms/turn_detection), `output` (voice/format) |
 | `session.resume` | Reconnect to an existing session: `{"type": "session.resume", "session_id": "..."}` |
-| `tool.result` | Return tool call result back to the agent |
+| `tool.result` | Return tool call result back to the agent: `{"type": "tool.result", "call_id": "...", "result": "<JSON string>"}` |
 
 ### Server Events
 
 | Event | Description |
 |-------|-------------|
-| `session.ready` | Session is initialized and ready |
+| `session.ready` | Session is initialized; includes `session_id` (always present) for `session.resume` |
 | `session.updated` | Session configuration has been updated |
-| `input.speech.started` | VAD detected speech start (for barge-in) |
-| `input.speech.stopped` | VAD detected speech end |
+| `input.speech.started` | Turn detection determined the user has started speaking (for barge-in) |
+| `input.speech.stopped` | Turn detection determined the user has stopped speaking |
 | `transcript.user.delta` | Partial user transcript |
-| `transcript.user` | Final user transcript |
-| `reply.started` | Agent is starting a reply |
-| `reply.audio` | Agent audio chunk (base64 PCM16 24kHz) |
-| `transcript.agent` | Agent's reply text |
-| `reply.done` | Agent reply complete |
-| `tool.call` | Agent wants to call a tool |
-| `error` | Non-fatal error |
-| `session.error` | Fatal session error |
+| `transcript.user` | Final user transcript with `item_id` |
+| `reply.started` | Agent is starting a reply (includes `reply_id`) |
+| `reply.audio` | Agent audio chunk (base64-encoded in configured output encoding) |
+| `transcript.agent` | Agent's reply text with `interrupted` boolean (true if user barged in) |
+| `reply.done` | Agent reply complete; optional `status: "interrupted"` if user barged in |
+| `tool.call` | Agent wants to call a tool — payload includes `call_id`, `name`, `arguments` (dict, **not** `args`) |
+| `session.error` | Connection / handshake / message validation error — see error code table below |
 
 ### Session Resume
 
@@ -55,7 +64,7 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
 
 ### Example session.update
 
-**Note:** S2S `session.update` wraps all config under a `"session"` key. Tool definitions use a **flat format** (not the nested `function` object used by the LLM Gateway).
+**Note:** Voice Agent `session.update` wraps all config under a `"session"` key. Tool definitions use a **flat format** (not the nested `function` object used by the LLM Gateway). All fields are optional — only include what you want to set.
 
 ```json
 {
@@ -63,6 +72,20 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
   "session": {
     "system_prompt": "You are a helpful customer support agent for Acme Corp.",
     "greeting": "Hello! How can I help you today?",
+    "input": {
+      "format": { "encoding": "audio/pcm" },
+      "keyterms": ["Acme", "OrderPro"],
+      "turn_detection": {
+        "vad_threshold": 0.5,
+        "min_silence": 600,
+        "max_silence": 1500,
+        "interrupt_response": true
+      }
+    },
+    "output": {
+      "voice": "ivy",
+      "format": { "encoding": "audio/pcm" }
+    },
     "tools": [
       {
         "type": "function",
@@ -81,17 +104,91 @@ Sessions are preserved for **30 seconds** after disconnection. Reconnect using `
 }
 ```
 
+### Voice Agent Turn Detection
+
+All fields under `session.input.turn_detection` — **note the field names differ from the streaming/LiveKit/Pipecat APIs**:
+
+| Field                | Type    | Default | Description                                                                |
+| -------------------- | ------- | ------- | -------------------------------------------------------------------------- |
+| `vad_threshold`      | float   | `0.5`   | Speech detection sensitivity (0.0–1.0). Lower = more sensitive to speech.  |
+| `min_silence`        | integer | `600`   | Minimum silence to consider a confident end-of-turn, in milliseconds.      |
+| `max_silence`        | integer | `1500`  | Maximum silence before forcing end-of-turn, in milliseconds.               |
+| `interrupt_response` | boolean | `true`  | Whether user speech interrupts the agent. Set `false` to disable barge-in. |
+
+### Tool Call Pattern
+
+The key pattern: **accumulate tool results, then send them all in `reply.done`** — not immediately on `tool.call`. The agent generates a transition phrase while waiting; sending tool results too early can cause timing issues.
+
+```python
+pending_tools = []
+
+if t == "tool.call":
+    name = event["name"]
+    arguments = event.get("arguments", {})  # dict — NOT "args"
+    result = run_tool(name, arguments)
+    pending_tools.append({"call_id": event["call_id"], "result": result})
+
+elif t == "reply.done":
+    if event.get("status") == "interrupted":
+        pending_tools.clear()  # discard — user barged in
+    else:
+        for tool in pending_tools:
+            await ws.send(json.dumps({
+                "type": "tool.result",
+                "call_id": tool["call_id"],
+                "result": json.dumps(tool["result"]),  # JSON string
+            }))
+        pending_tools.clear()
+```
+
+### Handling Interruptions (Barge-In)
+
+On user barge-in, the server emits `reply.done` with `status: "interrupted"` and `transcript.agent` with `interrupted: true`. Your client should flush the audio playback buffer and restart the output stream:
+
+| Platform           | Flush approach                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| **Python** (sounddevice) | `speaker.abort()` then `speaker.start()`                                                   |
+| **Web** (AudioContext)   | Disconnect the source node, create a new `AudioBufferSourceNode`, reconnect              |
+| **iOS** (AVAudioEngine)  | `playerNode.stop()` then `playerNode.play()`                                              |
+| **Android** (AudioTrack) | `audioTrack.pause()`, `audioTrack.flush()`, then `audioTrack.play()`                      |
+
+For browser apps, enable echo cancellation via `getUserMedia({ audio: { echoCancellation: true } })` to prevent the agent from interrupting itself. For terminal/desktop apps, use headphones — native audio APIs (PortAudio, sounddevice) don't include AEC.
+
 ### Available Voices
 
-Set a voice via `session.output.voice` in `session.update`. Can be changed mid-conversation.
+Set a voice via `session.output.voice` in `session.update`. Can be changed mid-conversation. Default is `ivy`.
 
-**English voices:** `josh`, `dylan`, `dawn`, `summer`, `andy`, `zoe`, `alexis`, `michael`, `pete`, `brian`, `diana`, `grace`, `kai`, `claire`, `nathan`, `audrey` (US); `melissa`, `will` (UK)
+**English voices** (US unless noted):
+`ivy`, `james`, `tyler`, `autumn`, `sam`, `mia`, `bella`, `david`, `jack`, `kyle`, `helen`, `martha`, `river`, `emma`, `victor`, `eleanor`; `sophie`, `oliver` (UK)
 
-**Multilingual voices** (also speak English with code-switching): `gautam` (Hindi), `luke`/`lily` (Mandarin), `alexei` (Russian), `max`/`anna` (German), `antoine` (French), `jennie`/`kevin` (Korean), `kenji`/`yuki` (Japanese), `nova`/`marco` (Italian), `sofia`/`santiago` (Spanish), `leo` (Colombian Spanish)
+**Multilingual voices** (also speak English with code-switching):
+`arjun` (Hindi/Hinglish), `ethan`/`mei` (Mandarin), `dmitri` (Russian), `lukas`/`lena` (German), `pierre` (French), `mina`/`joon` (Korean), `ren`/`hana` (Japanese), `giulia`/`luca` (Italian), `lucia`/`mateo` (Spanish), `diego` (Colombian Spanish)
 
 ```json
-{"type": "session.update", "session": {"output": {"voice": "dawn"}}}
+{"type": "session.update", "session": {"output": {"voice": "ivy"}}}
 ```
+
+### Voice Agent Error Codes
+
+`session.error` payloads include `code`, `message`, and `timestamp`. Some validation errors also include `param`.
+
+| Code                | Phase                           | Meaning                                                          |
+| ------------------- | ------------------------------- | ---------------------------------------------------------------- |
+| `UNAUTHORIZED`      | Connection (closes 1008)        | Missing or invalid `Authorization` token                         |
+| `FORBIDDEN`         | Connection (closes 1008)        | Valid token, insufficient permissions                            |
+| `INTERNAL_ERROR`    | Connection (closes 1011)        | Unexpected exception during connection setup                     |
+| `session_not_found` | `session.resume` (closes 1008)  | Unknown `session_id` or 30-second grace window expired           |
+| `session_forbidden` | `session.resume` (closes 1008)  | `session_id` belongs to a different account                      |
+| `session_expired`   | Live (closes 1008)              | Session TTL elapsed                                              |
+| `agent_init_failed` | After upgrade, before ready     | Agent worker reported initialization failure                     |
+| `agent_timeout`     | After upgrade, before ready     | Agent did not signal ready within 10 seconds                     |
+| `invalid_format`    | Live (session stays open)       | Bad JSON, missing/unknown `type`, validation failure             |
+| `invalid_audio`    | Live (session stays open)       | `input.audio` payload failed base64/PCM decode                   |
+| `invalid_value`     | Live (session stays open)       | `session.update` with invalid voice or field type                |
+| `immutable_field`   | Live (session stays open)       | Tried to change `greeting` or `output` after first update applied |
+| `invalid_config`    | Live (session stays open)       | `session.update` raised a validation error                       |
+
+In browsers, pre-handshake failures (like `UNAUTHORIZED`) surface as `close` event with code `1006` — no `session.error` payload arrives. Always fetch a fresh temporary token immediately before each connection attempt.
 
 ---
 
